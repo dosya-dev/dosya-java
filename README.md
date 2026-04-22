@@ -597,6 +597,13 @@ Do not mutate `DosyaClientOptions` after passing it to the client constructor.
 
 See [CHANGELOG.md](CHANGELOG.md) for a complete list of changes in each release.
 
+## Support
+
+If you have questions, found a bug, or need help integrating the SDK, reach out to the Dosya.dev team:
+
+- **Email:** [support@dosya.dev](mailto:support@dosya.dev)
+- **GitHub Issues:** [dosya-dev/dosya-java/issues](https://github.com/dosya-dev/dosya-java/issues)
+
 ## License
 
 [MIT](https://opensource.org/licenses/MIT)
