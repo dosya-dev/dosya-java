@@ -1,0 +1,14 @@
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+.idea/
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.factorypath
+.DS_Store
