@@ -135,7 +135,7 @@ public final class DosyaHttpClient {
                 conn.setConnectTimeout((int) connectTimeout);
                 conn.setReadTimeout((int) readTimeout);
                 conn.setRequestProperty("Authorization", "Bearer " + apiKey);
-                conn.setRequestProperty("User-Agent", "dosya-java/0.2.0");
+                conn.setRequestProperty("User-Agent", "dosya-java/0.2.1");
 
                 if (req.isRawResponse()) {
                     conn.setInstanceFollowRedirects(false);

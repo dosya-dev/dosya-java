@@ -45,20 +45,20 @@ Official Java SDK for [dosya.dev](https://dosya.dev) — file storage, uploads, 
 <dependency>
     <groupId>dev.dosya</groupId>
     <artifactId>dosya-java</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.1</version>
 </dependency>
 ```
 
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("dev.dosya:dosya-java:0.2.0")
+implementation("dev.dosya:dosya-java:0.2.1")
 ```
 
 ### Gradle (Groovy DSL)
 
 ```groovy
-implementation 'dev.dosya:dosya-java:0.2.0'
+implementation 'dev.dosya:dosya-java:0.2.1'
 ```
 
 ## Quick Start
