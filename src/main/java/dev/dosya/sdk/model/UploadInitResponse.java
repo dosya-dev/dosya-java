@@ -1,6 +1,17 @@
 package dev.dosya.sdk.model;
 
-public class UploadInitResponse {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Response returned when initializing an upload session.
+ *
+ * <p>Contains the session ID, upload URL for single-part uploads, and resumable
+ * configuration for multipart uploads.</p>
+ *
+ * @since 0.1.0
+ */
+public final class UploadInitResponse {
 
     private String sessionId;
     private String uploadUrl;
@@ -14,17 +25,22 @@ public class UploadInitResponse {
 
     private UploadInitResponse() {}
 
-    public String getSessionId() { return sessionId; }
-    public String getUploadUrl() { return uploadUrl; }
-    public String getWorkspaceId() { return workspaceId; }
-    public String getFileName() { return fileName; }
+    public @NotNull String getSessionId() { return sessionId; }
+    public @Nullable String getUploadUrl() { return uploadUrl; }
+    public @NotNull String getWorkspaceId() { return workspaceId; }
+    public @NotNull String getFileName() { return fileName; }
     public long getFileSize() { return fileSize; }
-    public String getMimeType() { return mimeType; }
-    public String getExtension() { return extension; }
-    public String getRegion() { return region; }
-    public Resumable getResumable() { return resumable; }
+    public @NotNull String getMimeType() { return mimeType; }
+    public @NotNull String getExtension() { return extension; }
+    public @NotNull String getRegion() { return region; }
+    public @Nullable Resumable getResumable() { return resumable; }
 
-    public static class Resumable {
+    /**
+     * Multipart upload configuration returned when the file qualifies for resumable upload.
+     *
+     * @since 0.1.0
+     */
+    public static final class Resumable {
         private int partSize;
         private int totalParts;
         private String partUploadUrl;
@@ -33,8 +49,8 @@ public class UploadInitResponse {
 
         private Resumable() {}
 
-        public Resumable(int partSize, int totalParts, String partUploadUrl,
-                         String completeUrl, String statusUrl) {
+        public Resumable(int partSize, int totalParts, @NotNull String partUploadUrl,
+                         @NotNull String completeUrl, @NotNull String statusUrl) {
             this.partSize = partSize;
             this.totalParts = totalParts;
             this.partUploadUrl = partUploadUrl;
@@ -44,8 +60,8 @@ public class UploadInitResponse {
 
         public int getPartSize() { return partSize; }
         public int getTotalParts() { return totalParts; }
-        public String getPartUploadUrl() { return partUploadUrl; }
-        public String getCompleteUrl() { return completeUrl; }
-        public String getStatusUrl() { return statusUrl; }
+        public @NotNull String getPartUploadUrl() { return partUploadUrl; }
+        public @NotNull String getCompleteUrl() { return completeUrl; }
+        public @NotNull String getStatusUrl() { return statusUrl; }
     }
 }

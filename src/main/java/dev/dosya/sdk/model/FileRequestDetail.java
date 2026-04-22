@@ -1,6 +1,14 @@
 package dev.dosya.sdk.model;
 
-public class FileRequestDetail {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Detailed information about a file request.
+ *
+ * @since 0.1.0
+ */
+public final class FileRequestDetail {
 
     private String id;
     private String token;
@@ -14,13 +22,13 @@ public class FileRequestDetail {
 
     private FileRequestDetail() {}
 
-    public String getId() { return id; }
-    public String getToken() { return token; }
-    public String getUrl() { return url; }
-    public String getTitle() { return title; }
-    public String getMessage() { return message; }
+    public @NotNull String getId() { return id; }
+    public @NotNull String getToken() { return token; }
+    public @NotNull String getUrl() { return url; }
+    public @Nullable String getTitle() { return title; }
+    public @Nullable String getMessage() { return message; }
     public int getIsPasswordProtected() { return isPasswordProtected; }
-    public Long getExpiresAt() { return expiresAt; }
+    public @Nullable Long getExpiresAt() { return expiresAt; }
     public int getUploadCount() { return uploadCount; }
     public long getCreatedAt() { return createdAt; }
 }

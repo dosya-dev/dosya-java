@@ -1,6 +1,13 @@
 package dev.dosya.sdk.model;
 
-public class FileVersion {
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Represents a single version of a file.
+ *
+ * @since 0.1.0
+ */
+public final class FileVersion {
 
     private String id;
     private int versionNumber;
@@ -13,12 +20,12 @@ public class FileVersion {
 
     private FileVersion() {}
 
-    public String getId() { return id; }
+    public @NotNull String getId() { return id; }
     public int getVersionNumber() { return versionNumber; }
     public long getSizeBytes() { return sizeBytes; }
-    public String getMimeType() { return mimeType; }
-    public String getExtension() { return extension; }
-    public String getUploadedBy() { return uploadedBy; }
-    public String getUploaderName() { return uploaderName; }
+    public @NotNull String getMimeType() { return mimeType; }
+    public @NotNull String getExtension() { return extension; }
+    public @NotNull String getUploadedBy() { return uploadedBy; }
+    public @NotNull String getUploaderName() { return uploaderName; }
     public long getCreatedAt() { return createdAt; }
 }

@@ -1,8 +1,19 @@
 package dev.dosya.sdk.model;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
 import java.util.List;
 
-public class ActivityListResponse {
+/**
+ * Response returned when listing activity entries for a workspace.
+ *
+ * <p>Contains the activity entries, workspace members involved, and pagination metadata.</p>
+ *
+ * @since 0.1.0
+ */
+public final class ActivityListResponse {
 
     private List<ActivityEntry> activities;
     private List<Member> members;
@@ -10,11 +21,16 @@ public class ActivityListResponse {
 
     private ActivityListResponse() {}
 
-    public List<ActivityEntry> getActivities() { return activities; }
-    public List<Member> getMembers() { return members; }
-    public Pagination getPagination() { return pagination; }
+    public @NotNull List<ActivityEntry> getActivities() { return activities != null ? Collections.unmodifiableList(activities) : Collections.<ActivityEntry>emptyList(); }
+    public @NotNull List<Member> getMembers() { return members != null ? Collections.unmodifiableList(members) : Collections.<Member>emptyList(); }
+    public @Nullable Pagination getPagination() { return pagination; }
 
-    public static class Member {
+    /**
+     * A workspace member referenced in activity entries.
+     *
+     * @since 0.1.0
+     */
+    public static final class Member {
         private String id;
         private String name;
         private String email;
@@ -25,6 +41,6 @@ public class ActivityListResponse {
         public String getId() { return id; }
         public String getName() { return name; }
         public String getEmail() { return email; }
-        public String getAvatarUrl() { return avatarUrl; }
+        public @Nullable String getAvatarUrl() { return avatarUrl; }
     }
 }

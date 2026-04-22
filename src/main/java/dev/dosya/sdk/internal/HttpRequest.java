@@ -3,7 +3,7 @@ package dev.dosya.sdk.internal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class HttpRequest {
+public final class HttpRequest {
 
     private final String method;
     private final String path;

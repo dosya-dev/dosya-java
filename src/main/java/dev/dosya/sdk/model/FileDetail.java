@@ -1,6 +1,14 @@
 package dev.dosya.sdk.model;
 
-public class FileDetail {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Detailed information about a single file in a Dosya workspace.
+ *
+ * @since 0.1.0
+ */
+public final class FileDetail {
 
     private String id;
     private String name;
@@ -22,21 +30,21 @@ public class FileDetail {
 
     private FileDetail() {}
 
-    public String getId() { return id; }
-    public String getName() { return name; }
+    public @NotNull String getId() { return id; }
+    public @NotNull String getName() { return name; }
     public long getSizeBytes() { return sizeBytes; }
-    public String getMimeType() { return mimeType; }
-    public String getExtension() { return extension; }
-    public String getRegion() { return region; }
-    public String getUploadedBy() { return uploadedBy; }
-    public String getUploaderName() { return uploaderName; }
-    public String getFolderId() { return folderId; }
-    public String getWorkspaceId() { return workspaceId; }
+    public @NotNull String getMimeType() { return mimeType; }
+    public @NotNull String getExtension() { return extension; }
+    public @NotNull String getRegion() { return region; }
+    public @NotNull String getUploadedBy() { return uploadedBy; }
+    public @NotNull String getUploaderName() { return uploaderName; }
+    public @Nullable String getFolderId() { return folderId; }
+    public @NotNull String getWorkspaceId() { return workspaceId; }
     public int getCurrentVersion() { return currentVersion; }
-    public String getLockMode() { return lockMode; }
+    public @Nullable String getLockMode() { return lockMode; }
     public int getIsHidden() { return isHidden; }
-    public String getHiddenMode() { return hiddenMode; }
+    public @Nullable String getHiddenMode() { return hiddenMode; }
     public long getCreatedAt() { return createdAt; }
     public long getUpdatedAt() { return updatedAt; }
-    public Long getDeletedAt() { return deletedAt; }
+    public @Nullable Long getDeletedAt() { return deletedAt; }
 }

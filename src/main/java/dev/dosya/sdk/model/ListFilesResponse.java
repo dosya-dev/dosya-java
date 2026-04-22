@@ -1,8 +1,20 @@
 package dev.dosya.sdk.model;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
 import java.util.List;
 
-public class ListFilesResponse {
+/**
+ * Response returned when listing files and folders in a workspace.
+ *
+ * <p>Contains the folder listing, file listing, breadcrumbs for navigation,
+ * and pagination metadata.</p>
+ *
+ * @since 0.1.0
+ */
+public final class ListFilesResponse {
 
     private List<FolderListItem> folders;
     private List<FileListItem> files;
@@ -16,13 +28,13 @@ public class ListFilesResponse {
 
     private ListFilesResponse() {}
 
-    public List<FolderListItem> getFolders() { return folders; }
-    public List<FileListItem> getFiles() { return files; }
-    public List<Breadcrumb> getBreadcrumbs() { return breadcrumbs; }
-    public String getWorkspaceId() { return workspaceId; }
-    public String getFolderId() { return folderId; }
+    public @NotNull List<FolderListItem> getFolders() { return folders != null ? Collections.unmodifiableList(folders) : Collections.<FolderListItem>emptyList(); }
+    public @NotNull List<FileListItem> getFiles() { return files != null ? Collections.unmodifiableList(files) : Collections.<FileListItem>emptyList(); }
+    public @NotNull List<Breadcrumb> getBreadcrumbs() { return breadcrumbs != null ? Collections.unmodifiableList(breadcrumbs) : Collections.<Breadcrumb>emptyList(); }
+    public @NotNull String getWorkspaceId() { return workspaceId; }
+    public @Nullable String getFolderId() { return folderId; }
     public boolean isCanLock() { return canLock; }
     public boolean isCanHide() { return canHide; }
     public boolean isFolderViewOnly() { return folderViewOnly; }
-    public Pagination getPagination() { return pagination; }
+    public @Nullable Pagination getPagination() { return pagination; }
 }

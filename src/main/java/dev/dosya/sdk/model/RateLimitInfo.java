@@ -1,6 +1,11 @@
 package dev.dosya.sdk.model;
 
-public class RateLimitInfo {
+/**
+ * Contains rate limit information extracted from API response headers.
+ *
+ * @since 0.1.0
+ */
+public final class RateLimitInfo {
 
     private final int limit;
     private final int remaining;

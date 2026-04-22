@@ -1,6 +1,11 @@
 package dev.dosya.sdk.model;
 
-public class Pagination {
+/**
+ * Pagination metadata included in paginated API responses.
+ *
+ * @since 0.1.0
+ */
+public final class Pagination {
 
     private int page;
     private int perPage;

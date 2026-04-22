@@ -1,8 +1,17 @@
 package dev.dosya.sdk.model;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
 import java.util.List;
 
-public class UploadStatusResponse {
+/**
+ * Response containing the current status of an upload session.
+ *
+ * @since 0.1.0
+ */
+public final class UploadStatusResponse {
 
     private String sessionId;
     private String status;
@@ -15,12 +24,12 @@ public class UploadStatusResponse {
 
     private UploadStatusResponse() {}
 
-    public String getSessionId() { return sessionId; }
-    public String getStatus() { return status; }
+    public @NotNull String getSessionId() { return sessionId; }
+    public @NotNull String getStatus() { return status; }
     public long getSizeBytes() { return sizeBytes; }
-    public Integer getPartSize() { return partSize; }
-    public Integer getTotalParts() { return totalParts; }
+    public @Nullable Integer getPartSize() { return partSize; }
+    public @Nullable Integer getTotalParts() { return totalParts; }
     public long getBytesUploaded() { return bytesUploaded; }
-    public List<Integer> getUploadedParts() { return uploadedParts; }
-    public boolean isHasMultipart() { return hasMultipart; }
+    public @NotNull List<Integer> getUploadedParts() { return uploadedParts != null ? Collections.unmodifiableList(uploadedParts) : Collections.<Integer>emptyList(); }
+    public boolean hasMultipart() { return hasMultipart; }
 }

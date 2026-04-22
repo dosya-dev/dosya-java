@@ -1,18 +1,34 @@
 package dev.dosya.sdk.model;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
 import java.util.List;
 
-public class SharesListResponse {
+/**
+ * Response returned when listing share links for a workspace.
+ *
+ * <p>Contains the list of share links and summary statistics.</p>
+ *
+ * @since 0.1.0
+ */
+public final class SharesListResponse {
 
     private List<ShareLinkDetail> links;
     private Stats stats;
 
     private SharesListResponse() {}
 
-    public List<ShareLinkDetail> getLinks() { return links; }
-    public Stats getStats() { return stats; }
+    public @NotNull List<ShareLinkDetail> getLinks() { return links != null ? Collections.unmodifiableList(links) : Collections.<ShareLinkDetail>emptyList(); }
+    public @Nullable Stats getStats() { return stats; }
 
-    public static class Stats {
+    /**
+     * Summary statistics for share links in a workspace.
+     *
+     * @since 0.1.0
+     */
+    public static final class Stats {
         private int total;
         private int active;
         private int expiring;

@@ -1,6 +1,21 @@
 package dev.dosya.sdk.model;
 
-public class ListActivityParams {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Parameters for listing activity entries in a workspace.
+ *
+ * <pre>{@code
+ * ListActivityParams params = new ListActivityParams("ws_123")
+ *     .category("file")
+ *     .action("upload")
+ *     .page(1);
+ * }</pre>
+ *
+ * @since 0.1.0
+ */
+public final class ListActivityParams {
 
     private final String workspaceId;
     private Integer page;
@@ -9,7 +24,7 @@ public class ListActivityParams {
     private String action;
     private String userId;
 
-    public ListActivityParams(String workspaceId) {
+    public ListActivityParams(@NotNull String workspaceId) {
         this.workspaceId = workspaceId;
     }
 
@@ -19,10 +34,10 @@ public class ListActivityParams {
     public ListActivityParams action(String action) { this.action = action; return this; }
     public ListActivityParams userId(String userId) { this.userId = userId; return this; }
 
-    public String getWorkspaceId() { return workspaceId; }
-    public Integer getPage() { return page; }
-    public Integer getPerPage() { return perPage; }
-    public String getCategory() { return category; }
-    public String getAction() { return action; }
-    public String getUserId() { return userId; }
+    public @NotNull String getWorkspaceId() { return workspaceId; }
+    public @Nullable Integer getPage() { return page; }
+    public @Nullable Integer getPerPage() { return perPage; }
+    public @Nullable String getCategory() { return category; }
+    public @Nullable String getAction() { return action; }
+    public @Nullable String getUserId() { return userId; }
 }

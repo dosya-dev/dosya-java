@@ -1,8 +1,26 @@
 package dev.dosya.sdk.model;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
 import java.util.List;
 
-public class CreateFileRequestParams {
+/**
+ * Parameters for creating a new file request.
+ *
+ * <pre>{@code
+ * CreateFileRequestParams params = new CreateFileRequestParams("ws_123")
+ *     .title("Upload your documents")
+ *     .message("Please submit by Friday")
+ *     .expiresInDays(7)
+ *     .maxFiles(5)
+ *     .emails(Arrays.asList("user@example.com"));
+ * }</pre>
+ *
+ * @since 0.1.0
+ */
+public final class CreateFileRequestParams {
 
     private final String workspaceId;
     private String folderId;
@@ -15,7 +33,7 @@ public class CreateFileRequestParams {
     private Integer maxFiles;
     private List<String> emails;
 
-    public CreateFileRequestParams(String workspaceId) {
+    public CreateFileRequestParams(@NotNull String workspaceId) {
         this.workspaceId = workspaceId;
     }
 
@@ -27,16 +45,16 @@ public class CreateFileRequestParams {
     public CreateFileRequestParams allowedExtensions(String allowedExtensions) { this.allowedExtensions = allowedExtensions; return this; }
     public CreateFileRequestParams maxFileSizeMb(int maxFileSizeMb) { this.maxFileSizeMb = maxFileSizeMb; return this; }
     public CreateFileRequestParams maxFiles(int maxFiles) { this.maxFiles = maxFiles; return this; }
-    public CreateFileRequestParams emails(List<String> emails) { this.emails = emails; return this; }
+    public CreateFileRequestParams emails(List<String> emails) { this.emails = emails != null ? new ArrayList<String>(emails) : null; return this; }
 
-    public String getWorkspaceId() { return workspaceId; }
-    public String getFolderId() { return folderId; }
-    public String getTitle() { return title; }
-    public String getMessage() { return message; }
-    public String getPassword() { return password; }
-    public Integer getExpiresInDays() { return expiresInDays; }
-    public String getAllowedExtensions() { return allowedExtensions; }
-    public Integer getMaxFileSizeMb() { return maxFileSizeMb; }
-    public Integer getMaxFiles() { return maxFiles; }
-    public List<String> getEmails() { return emails; }
+    public @NotNull String getWorkspaceId() { return workspaceId; }
+    public @Nullable String getFolderId() { return folderId; }
+    public @Nullable String getTitle() { return title; }
+    public @Nullable String getMessage() { return message; }
+    public @Nullable String getPassword() { return password; }
+    public @Nullable Integer getExpiresInDays() { return expiresInDays; }
+    public @Nullable String getAllowedExtensions() { return allowedExtensions; }
+    public @Nullable Integer getMaxFileSizeMb() { return maxFileSizeMb; }
+    public @Nullable Integer getMaxFiles() { return maxFiles; }
+    public @Nullable List<String> getEmails() { return emails; }
 }

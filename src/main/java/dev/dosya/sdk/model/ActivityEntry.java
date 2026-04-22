@@ -1,6 +1,14 @@
 package dev.dosya.sdk.model;
 
-public class ActivityEntry {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Represents a single activity log entry in a workspace.
+ *
+ * @since 0.1.0
+ */
+public final class ActivityEntry {
 
     private String id;
     private String workspaceId;
@@ -15,14 +23,14 @@ public class ActivityEntry {
 
     private ActivityEntry() {}
 
-    public String getId() { return id; }
-    public String getWorkspaceId() { return workspaceId; }
-    public String getUserId() { return userId; }
-    public String getUserName() { return userName; }
-    public String getAction() { return action; }
-    public String getResourceType() { return resourceType; }
-    public String getResourceId() { return resourceId; }
-    public String getResourceName() { return resourceName; }
-    public String getMetadata() { return metadata; }
+    public @NotNull String getId() { return id; }
+    public @NotNull String getWorkspaceId() { return workspaceId; }
+    public @NotNull String getUserId() { return userId; }
+    public @NotNull String getUserName() { return userName; }
+    public @NotNull String getAction() { return action; }
+    public @NotNull String getResourceType() { return resourceType; }
+    public @NotNull String getResourceId() { return resourceId; }
+    public @Nullable String getResourceName() { return resourceName; }
+    public @Nullable String getMetadata() { return metadata; }
     public long getCreatedAt() { return createdAt; }
 }

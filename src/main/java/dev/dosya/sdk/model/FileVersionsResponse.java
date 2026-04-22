@@ -1,8 +1,18 @@
 package dev.dosya.sdk.model;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
 import java.util.List;
 
-public class FileVersionsResponse {
+/**
+ * Response returned when listing file versions.
+ *
+ * <p>Contains the file name, current version number, and a list of all versions.</p>
+ *
+ * @since 0.1.0
+ */
+public final class FileVersionsResponse {
 
     private String fileName;
     private int currentVersion;
@@ -10,7 +20,7 @@ public class FileVersionsResponse {
 
     private FileVersionsResponse() {}
 
-    public String getFileName() { return fileName; }
+    public @NotNull String getFileName() { return fileName; }
     public int getCurrentVersion() { return currentVersion; }
-    public List<FileVersion> getVersions() { return versions; }
+    public @NotNull List<FileVersion> getVersions() { return versions != null ? Collections.unmodifiableList(versions) : Collections.<FileVersion>emptyList(); }
 }

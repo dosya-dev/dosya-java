@@ -1,6 +1,14 @@
 package dev.dosya.sdk.model;
 
-public class FileListItem {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Summary information about a file as returned in listing responses.
+ *
+ * @since 0.1.0
+ */
+public final class FileListItem {
 
     private String id;
     private String name;
@@ -23,20 +31,20 @@ public class FileListItem {
 
     private FileListItem() {}
 
-    public String getId() { return id; }
-    public String getName() { return name; }
+    public @NotNull String getId() { return id; }
+    public @NotNull String getName() { return name; }
     public long getSizeBytes() { return sizeBytes; }
-    public String getMimeType() { return mimeType; }
-    public String getExtension() { return extension; }
-    public String getRegion() { return region; }
-    public String getUploadedBy() { return uploadedBy; }
-    public String getUploaderName() { return uploaderName; }
+    public @NotNull String getMimeType() { return mimeType; }
+    public @NotNull String getExtension() { return extension; }
+    public @NotNull String getRegion() { return region; }
+    public @NotNull String getUploadedBy() { return uploadedBy; }
+    public @NotNull String getUploaderName() { return uploaderName; }
     public long getCreatedAt() { return createdAt; }
     public long getUpdatedAt() { return updatedAt; }
-    public Long getDeletedAt() { return deletedAt; }
-    public String getLockMode() { return lockMode; }
+    public @Nullable Long getDeletedAt() { return deletedAt; }
+    public @Nullable String getLockMode() { return lockMode; }
     public int getIsHidden() { return isHidden; }
-    public String getHiddenMode() { return hiddenMode; }
+    public @Nullable String getHiddenMode() { return hiddenMode; }
     public int getCurrentVersion() { return currentVersion; }
     public int getIsSynced() { return isSynced; }
     public int getShareCount() { return shareCount; }

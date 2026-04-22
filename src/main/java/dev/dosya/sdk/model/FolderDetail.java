@@ -1,6 +1,14 @@
 package dev.dosya.sdk.model;
 
-public class FolderDetail {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Detailed information about a single folder in a Dosya workspace.
+ *
+ * @since 0.1.0
+ */
+public final class FolderDetail {
 
     private String id;
     private String name;
@@ -10,9 +18,9 @@ public class FolderDetail {
 
     private FolderDetail() {}
 
-    public String getId() { return id; }
-    public String getName() { return name; }
-    public String getParentId() { return parentId; }
-    public String getWorkspaceId() { return workspaceId; }
+    public @NotNull String getId() { return id; }
+    public @NotNull String getName() { return name; }
+    public @Nullable String getParentId() { return parentId; }
+    public @NotNull String getWorkspaceId() { return workspaceId; }
     public long getCreatedAt() { return createdAt; }
 }

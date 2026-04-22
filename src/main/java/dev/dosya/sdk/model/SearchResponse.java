@@ -1,8 +1,17 @@
 package dev.dosya.sdk.model;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
 import java.util.List;
 
-public class SearchResponse {
+/**
+ * Response returned from a search query containing matched files, folders, shares, and file requests.
+ *
+ * @since 0.1.0
+ */
+public final class SearchResponse {
 
     private String query;
     private List<SearchFile> files;
@@ -13,14 +22,19 @@ public class SearchResponse {
 
     private SearchResponse() {}
 
-    public String getQuery() { return query; }
-    public List<SearchFile> getFiles() { return files; }
-    public List<SearchFolder> getFolders() { return folders; }
-    public List<SearchShared> getShared() { return shared; }
-    public List<SearchFileRequest> getFileRequests() { return fileRequests; }
-    public Pagination getPagination() { return pagination; }
+    public @NotNull String getQuery() { return query; }
+    public @NotNull List<SearchFile> getFiles() { return files != null ? Collections.unmodifiableList(files) : Collections.<SearchFile>emptyList(); }
+    public @NotNull List<SearchFolder> getFolders() { return folders != null ? Collections.unmodifiableList(folders) : Collections.<SearchFolder>emptyList(); }
+    public @NotNull List<SearchShared> getShared() { return shared != null ? Collections.unmodifiableList(shared) : Collections.<SearchShared>emptyList(); }
+    public @NotNull List<SearchFileRequest> getFileRequests() { return fileRequests != null ? Collections.unmodifiableList(fileRequests) : Collections.<SearchFileRequest>emptyList(); }
+    public @Nullable Pagination getPagination() { return pagination; }
 
-    public static class SearchFile {
+    /**
+     * A file matching the search query.
+     *
+     * @since 0.1.0
+     */
+    public static final class SearchFile {
         private String id;
         private String name;
         private long sizeBytes;
@@ -38,7 +52,12 @@ public class SearchResponse {
         public long getCreatedAt() { return createdAt; }
     }
 
-    public static class SearchFolder {
+    /**
+     * A folder matching the search query.
+     *
+     * @since 0.1.0
+     */
+    public static final class SearchFolder {
         private String id;
         private String name;
         private long createdAt;
@@ -50,7 +69,12 @@ public class SearchResponse {
         public long getCreatedAt() { return createdAt; }
     }
 
-    public static class SearchShared {
+    /**
+     * A shared link matching the search query.
+     *
+     * @since 0.1.0
+     */
+    public static final class SearchShared {
         private String id;
         private String fileName;
         private String token;
@@ -64,7 +88,12 @@ public class SearchResponse {
         public long getCreatedAt() { return createdAt; }
     }
 
-    public static class SearchFileRequest {
+    /**
+     * A file request matching the search query.
+     *
+     * @since 0.1.0
+     */
+    public static final class SearchFileRequest {
         private String id;
         private String title;
         private String token;

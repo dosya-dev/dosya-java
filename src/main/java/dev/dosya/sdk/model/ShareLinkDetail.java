@@ -1,6 +1,14 @@
 package dev.dosya.sdk.model;
 
-public class ShareLinkDetail {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Detailed information about a share link for a file.
+ *
+ * @since 0.1.0
+ */
+public final class ShareLinkDetail {
 
     private String id;
     private String fileId;
@@ -15,14 +23,14 @@ public class ShareLinkDetail {
 
     private ShareLinkDetail() {}
 
-    public String getId() { return id; }
-    public String getFileId() { return fileId; }
-    public String getFileName() { return fileName; }
-    public String getToken() { return token; }
+    public @NotNull String getId() { return id; }
+    public @NotNull String getFileId() { return fileId; }
+    public @NotNull String getFileName() { return fileName; }
+    public @NotNull String getToken() { return token; }
     public int getIsPasswordProtected() { return isPasswordProtected; }
-    public Long getExpiresAt() { return expiresAt; }
+    public @Nullable Long getExpiresAt() { return expiresAt; }
     public int getDownloadCount() { return downloadCount; }
     public long getCreatedAt() { return createdAt; }
-    public String getCreatedBy() { return createdBy; }
-    public String getStatus() { return status; }
+    public @NotNull String getCreatedBy() { return createdBy; }
+    public @NotNull String getStatus() { return status; }
 }

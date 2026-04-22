@@ -1,6 +1,22 @@
 package dev.dosya.sdk.model;
 
-public class ListFilesParams {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Parameters for listing files and folders in a workspace.
+ *
+ * <pre>{@code
+ * ListFilesParams params = new ListFilesParams("ws_123")
+ *     .folderId("folder_456")
+ *     .sort("name")
+ *     .page(1)
+ *     .perPage(20);
+ * }</pre>
+ *
+ * @since 0.1.0
+ */
+public final class ListFilesParams {
 
     private final String workspaceId;
     private String folderId;
@@ -12,7 +28,7 @@ public class ListFilesParams {
     private Integer page;
     private Integer perPage;
 
-    public ListFilesParams(String workspaceId) {
+    public ListFilesParams(@NotNull String workspaceId) {
         this.workspaceId = workspaceId;
     }
 
@@ -25,13 +41,13 @@ public class ListFilesParams {
     public ListFilesParams page(int page) { this.page = page; return this; }
     public ListFilesParams perPage(int perPage) { this.perPage = perPage; return this; }
 
-    public String getWorkspaceId() { return workspaceId; }
-    public String getFolderId() { return folderId; }
-    public String getFilter() { return filter; }
-    public String getSort() { return sort; }
-    public String getQ() { return q; }
-    public Boolean getDeleted() { return deleted; }
-    public Boolean getHidden() { return hidden; }
-    public Integer getPage() { return page; }
-    public Integer getPerPage() { return perPage; }
+    public @NotNull String getWorkspaceId() { return workspaceId; }
+    public @Nullable String getFolderId() { return folderId; }
+    public @Nullable String getFilter() { return filter; }
+    public @Nullable String getSort() { return sort; }
+    public @Nullable String getQ() { return q; }
+    public @Nullable Boolean getDeleted() { return deleted; }
+    public @Nullable Boolean getHidden() { return hidden; }
+    public @Nullable Integer getPage() { return page; }
+    public @Nullable Integer getPerPage() { return perPage; }
 }

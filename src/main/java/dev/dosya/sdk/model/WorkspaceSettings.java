@@ -1,6 +1,16 @@
 package dev.dosya.sdk.model;
 
-public class WorkspaceSettings {
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Configuration settings for a Dosya workspace.
+ *
+ * <p>Controls upload limits, allowed/blocked extensions, security policies,
+ * and share link settings.</p>
+ *
+ * @since 0.1.0
+ */
+public final class WorkspaceSettings {
 
     private double maxFileSizeGb;
     private double maxTotalStorageGb;
@@ -19,10 +29,10 @@ public class WorkspaceSettings {
     public double getMaxTotalStorageGb() { return maxTotalStorageGb; }
     public double getMaxStoragePerMemberGb() { return maxStoragePerMemberGb; }
     public int getMaxConcurrentUploads() { return maxConcurrentUploads; }
-    public String getAllowedExtensions() { return allowedExtensions; }
-    public String getBlockedExtensions() { return blockedExtensions; }
+    public @Nullable String getAllowedExtensions() { return allowedExtensions; }
+    public @Nullable String getBlockedExtensions() { return blockedExtensions; }
     public int getRequire2fa() { return require2fa; }
     public int getDisableShareLinks() { return disableShareLinks; }
     public int getForceSharePassword() { return forceSharePassword; }
-    public Integer getShareMaxExpiryDays() { return shareMaxExpiryDays; }
+    public @Nullable Integer getShareMaxExpiryDays() { return shareMaxExpiryDays; }
 }

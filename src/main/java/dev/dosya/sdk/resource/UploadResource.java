@@ -5,24 +5,49 @@ import dev.dosya.sdk.exception.DosyaUploadException;
 import dev.dosya.sdk.internal.DosyaHttpClient;
 import dev.dosya.sdk.internal.HttpRequest;
 import dev.dosya.sdk.model.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 import static dev.dosya.sdk.internal.DosyaHttpClient.encode;
 
-public class UploadResource {
+/**
+ * Provides operations for uploading files to Dosya workspaces.
+ *
+ * <p>Supports single-part and multipart uploads with automatic concurrency,
+ * progress tracking, and resumable upload sessions.</p>
+ *
+ * @since 0.1.0
+ */
+public final class UploadResource {
 
     private static final int CONCURRENCY = 3;
 
     private final DosyaHttpClient http;
 
-    public UploadResource(DosyaHttpClient http) {
+    /**
+     * Creates a new {@code UploadResource} backed by the given HTTP client.
+     *
+     * @param http the HTTP client used to make API requests
+     */
+    public UploadResource(@NotNull DosyaHttpClient http) {
         this.http = http;
     }
 
-    public UploadResult file(UploadParams params) {
+    /**
+     * Uploads a file using the provided parameters. Automatically selects single-part
+     * or multipart upload based on the server response.
+     *
+     * @param params the upload parameters including workspace ID, file data, and optional settings
+     * @return the upload result containing the uploaded file detail and session ID
+     * @throws DosyaUploadException if the upload fails
+     * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     */
+    public @NotNull UploadResult file(@NotNull UploadParams params) {
         Consumer<UploadProgress> onProgress = params.getOnProgress();
         if (onProgress != null) {
             onProgress.accept(new UploadProgress(0, params.getFileSize(), 0, "initializing"));
@@ -42,14 +67,24 @@ public class UploadResource {
                 params.getBody(), session.getMimeType(), params.getFileSize(), onProgress);
     }
 
-    public UploadResult resume(String sessionId, byte[] body, Consumer<UploadProgress> onProgress) {
+    /**
+     * Resumes a previously started multipart upload session.
+     *
+     * @param sessionId  the upload session ID to resume
+     * @param body       the full file bytes to upload
+     * @param onProgress an optional callback for progress updates, or {@code null}
+     * @return the upload result containing the uploaded file detail and session ID
+     * @throws DosyaUploadException if the session is already complete, not multipart, or the upload fails
+     * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     */
+    public @NotNull UploadResult resume(@NotNull String sessionId, @NotNull byte[] body, @Nullable Consumer<UploadProgress> onProgress) {
         UploadStatusResponse st = status(sessionId);
 
         if ("complete".equals(st.getStatus())) {
             throw new DosyaUploadException("Upload session is already complete", sessionId);
         }
 
-        if (!st.isHasMultipart() || st.getPartSize() == null || st.getTotalParts() == null) {
+        if (!st.hasMultipart() || st.getPartSize() == null || st.getTotalParts() == null) {
             throw new DosyaUploadException("Cannot resume a non-multipart upload session", sessionId);
         }
 
@@ -64,8 +99,22 @@ public class UploadResource {
                 st.getUploadedParts() != null ? st.getUploadedParts() : Collections.<Integer>emptyList());
     }
 
-    public UploadInitResponse init(String workspaceId, String fileName, long fileSize,
-                                   String mimeType, String region, String folderId, String fileId) {
+    /**
+     * Initializes an upload session with the Dosya API.
+     *
+     * @param workspaceId the workspace to upload into
+     * @param fileName    the name of the file being uploaded
+     * @param fileSize    the total file size in bytes
+     * @param mimeType    the MIME type of the file, or {@code null} for auto-detection
+     * @param region      the storage region, or {@code null} for the default
+     * @param folderId    the target folder ID, or {@code null} for the workspace root
+     * @param fileId      an existing file ID for versioned re-upload, or {@code null}
+     * @return the initialization response containing session ID and upload instructions
+     * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     */
+    public @NotNull UploadInitResponse init(@NotNull String workspaceId, @NotNull String fileName, long fileSize,
+                                            @Nullable String mimeType, @Nullable String region,
+                                            @Nullable String folderId, @Nullable String fileId) {
         Map<String, Object> body = new HashMap<String, Object>();
         body.put("workspace_id", workspaceId);
         body.put("file_name", fileName);
@@ -77,7 +126,14 @@ public class UploadResource {
         return http.requestAs(HttpRequest.post("/api/upload/init").body(body), UploadInitResponse.class);
     }
 
-    public UploadStatusResponse status(String sessionId) {
+    /**
+     * Retrieves the current status of an upload session.
+     *
+     * @param sessionId the upload session ID
+     * @return the status response including uploaded parts and progress
+     * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     */
+    public @NotNull UploadStatusResponse status(@NotNull String sessionId) {
         return http.requestAs(
                 HttpRequest.get("/api/upload/" + encode(sessionId) + "/status"),
                 UploadStatusResponse.class);
@@ -134,7 +190,7 @@ public class UploadResource {
         // Upload parts with concurrency pool
         ExecutorService executor = Executors.newFixedThreadPool(Math.min(CONCURRENCY, Math.max(1, parts.size())));
         List<Future<?>> futures = new ArrayList<Future<?>>();
-        final long[] sharedBytesUploaded = {bytesUploaded};
+        final AtomicLong sharedBytesUploaded = new AtomicLong(bytesUploaded);
         final long finalTotalBytes = totalBytes;
 
         for (final int[] part : parts) {
@@ -157,8 +213,8 @@ public class UploadResource {
                             lastErr = e;
                             if (attempt == maxPartRetries) {
                                 throw new DosyaUploadException(
-                                        "Failed to upload part " + partNumber + " after " + (maxPartRetries + 1) + " attempts: " + lastErr,
-                                        sessionId, partNumber);
+                                        "Failed to upload part " + partNumber + " after " + (maxPartRetries + 1) + " attempts",
+                                        sessionId, partNumber, lastErr);
                             }
                             long delay = http.getBaseDelay() * (1L << attempt);
                             long jitter = (long) (delay * 0.2 * Math.random());
@@ -173,10 +229,11 @@ public class UploadResource {
 
                     synchronized (uploadedSet) {
                         uploadedSet.add(partNumber);
-                        sharedBytesUploaded[0] = Math.min((long) uploadedSet.size() * partSize, finalTotalBytes);
+                        long uploaded = Math.min((long) uploadedSet.size() * partSize, finalTotalBytes);
+                        sharedBytesUploaded.set(uploaded);
                         if (onProgress != null) {
-                            onProgress.accept(new UploadProgress(sharedBytesUploaded[0], finalTotalBytes,
-                                    (int) Math.round((double) sharedBytesUploaded[0] / finalTotalBytes * 100),
+                            onProgress.accept(new UploadProgress(uploaded, finalTotalBytes,
+                                    (int) Math.round((double) uploaded / finalTotalBytes * 100),
                                     uploadedSet.size(), totalParts, "uploading"));
                         }
                     }

@@ -1,6 +1,14 @@
 package dev.dosya.sdk.model;
 
-public class FolderListItem {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Summary information about a folder as returned in listing responses.
+ *
+ * @since 0.1.0
+ */
+public final class FolderListItem {
 
     private String id;
     private String name;
@@ -13,12 +21,12 @@ public class FolderListItem {
 
     private FolderListItem() {}
 
-    public String getId() { return id; }
-    public String getName() { return name; }
+    public @NotNull String getId() { return id; }
+    public @NotNull String getName() { return name; }
     public long getCreatedAt() { return createdAt; }
     public int getFileCount() { return fileCount; }
-    public String getLockMode() { return lockMode; }
+    public @Nullable String getLockMode() { return lockMode; }
     public int getIsHidden() { return isHidden; }
-    public String getHiddenMode() { return hiddenMode; }
+    public @Nullable String getHiddenMode() { return hiddenMode; }
     public int getIsSynced() { return isSynced; }
 }
