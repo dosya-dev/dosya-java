@@ -23,16 +23,22 @@ import java.util.Objects;
 public final class DosyaClient {
 
     private final FilesResource files;
+    private final FavouritesResource favourites;
     private final FoldersResource folders;
     private final UploadResource upload;
     private final DownloadResource download;
     private final SharesResource shares;
     private final WorkspacesResource workspaces;
+    private final TeamResource team;
+    private final RolesResource roles;
+    private final RegionsResource regions;
     private final FileRequestsResource fileRequests;
     private final SearchResource search;
     private final CommentsResource comments;
     private final MeResource me;
     private final ActivityResource activity;
+    private final WebhooksResource webhooks;
+    private final RemoteDownloadsResource remoteDownloads;
 
     /**
      * Creates a new {@code DosyaClient} with the given options.
@@ -49,16 +55,22 @@ public final class DosyaClient {
 
         DosyaHttpClient http = new DosyaHttpClient(options);
         this.files = new FilesResource(http);
+        this.favourites = new FavouritesResource(http);
         this.folders = new FoldersResource(http);
         this.upload = new UploadResource(http);
         this.download = new DownloadResource(http);
         this.shares = new SharesResource(http);
         this.workspaces = new WorkspacesResource(http);
+        this.team = new TeamResource(http);
+        this.roles = new RolesResource(http);
+        this.regions = new RegionsResource(http);
         this.fileRequests = new FileRequestsResource(http);
         this.search = new SearchResource(http);
         this.comments = new CommentsResource(http);
         this.me = new MeResource(http);
         this.activity = new ActivityResource(http);
+        this.webhooks = new WebhooksResource(http);
+        this.remoteDownloads = new RemoteDownloadsResource(http);
     }
 
     /**
@@ -73,6 +85,9 @@ public final class DosyaClient {
 
     /** Returns the files resource for file operations. */
     public @NotNull FilesResource files() { return files; }
+
+    /** Returns the favourites resource. @since 0.3.0 */
+    public @NotNull FavouritesResource favourites() { return favourites; }
 
     /** Returns the folders resource for folder operations. */
     public @NotNull FoldersResource folders() { return folders; }
@@ -89,6 +104,15 @@ public final class DosyaClient {
     /** Returns the workspaces resource for workspace operations. */
     public @NotNull WorkspacesResource workspaces() { return workspaces; }
 
+    /** Returns the team resource: members, invites and join links. @since 0.3.0 */
+    public @NotNull TeamResource team() { return team; }
+
+    /** Returns the roles resource. @since 0.3.0 */
+    public @NotNull RolesResource roles() { return roles; }
+
+    /** Returns the regions resource: valid workspace locations. @since 0.3.0 */
+    public @NotNull RegionsResource regions() { return regions; }
+
     /** Returns the file requests resource for file request operations. */
     public @NotNull FileRequestsResource fileRequests() { return fileRequests; }
 
@@ -103,4 +127,10 @@ public final class DosyaClient {
 
     /** Returns the activity resource for activity log operations. */
     public @NotNull ActivityResource activity() { return activity; }
+
+    /** Returns the webhooks resource: endpoint management and delivery logs. @since 0.3.0 */
+    public @NotNull WebhooksResource webhooks() { return webhooks; }
+
+    /** Returns the remote downloads resource: fetch a URL into a workspace. @since 0.3.0 */
+    public @NotNull RemoteDownloadsResource remoteDownloads() { return remoteDownloads; }
 }

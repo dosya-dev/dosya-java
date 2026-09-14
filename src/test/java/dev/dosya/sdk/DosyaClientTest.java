@@ -122,4 +122,16 @@ class DosyaClientTest {
         assertThat(client.me()).isSameAs(client.me());
         assertThat(client.activity()).isSameAs(client.activity());
     }
+
+    @Test
+    void newResourceAccessorsReturnNonNull() {
+        DosyaClient client = new DosyaClient("dos_test_key");
+        assertThat(client.favourites()).isNotNull();
+        assertThat(client.team()).isNotNull();
+        assertThat(client.roles()).isNotNull();
+        assertThat(client.regions()).isNotNull();
+        assertThat(client.webhooks()).isNotNull();
+        assertThat(client.remoteDownloads()).isNotNull();
+        assertThat(client.team()).isSameAs(client.team());
+    }
 }
