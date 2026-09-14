@@ -3,13 +3,13 @@ package dev.dosya.sdk.model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 /**
- * Parameters for searching files, folders, shares, and file requests.
+ * Parameters for searching files, folders, share links and file requests.
  *
  * <pre>{@code
- * SearchParams params = new SearchParams("ws_123", "report")
- *     .page(1)
- *     .perPage(10);
+ * new SearchParams("ws_123", "ext:pdf report").page(1).perPage(10);
  * }</pre>
  *
  * @since 0.1.0
@@ -21,13 +21,22 @@ public final class SearchParams {
     private Integer page;
     private Integer perPage;
 
+    /**
+     * @param workspaceId the workspace to search
+     * @param q           search text (case-insensitive substring), must not be empty. A leading or
+     *                    trailing {@code ext:pdf} token restricts files to that extension
+     *                    ({@code ext:pdf} alone lists every PDF); folders and file requests then
+     *                    come back empty.
+     */
     public SearchParams(@NotNull String workspaceId, @NotNull String q) {
-        this.workspaceId = workspaceId;
-        this.q = q;
+        this.workspaceId = Objects.requireNonNull(workspaceId, "workspaceId");
+        this.q = Objects.requireNonNull(q, "q");
     }
 
-    public SearchParams page(int page) { this.page = page; return this; }
-    public SearchParams perPage(int perPage) { this.perPage = perPage; return this; }
+    /** 1-based page. */
+    public @NotNull SearchParams page(int page) { this.page = page; return this; }
+    /** 1-100, default 50. Applied to each result set separately. */
+    public @NotNull SearchParams perPage(int perPage) { this.perPage = perPage; return this; }
 
     public @NotNull String getWorkspaceId() { return workspaceId; }
     public @NotNull String getQ() { return q; }

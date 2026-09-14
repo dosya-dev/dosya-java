@@ -7,7 +7,7 @@ import dev.dosya.sdk.model.ListActivityParams;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Provides operations for retrieving activity logs from Dosya workspaces.
+ * Reads a workspace's activity log.
  *
  * @since 0.1.0
  */
@@ -25,21 +25,15 @@ public final class ActivityResource {
     }
 
     /**
-     * Lists activity entries for a workspace, with optional filtering by category, action, or user.
-     *
-     * @param params the activity listing parameters including workspace ID, pagination, and filters
-     * @return the response containing activity entries, members, and pagination info
-     * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     * One page of the workspace activity log, newest first. Needs the {@code view_activity}
+     * permission; folder-confined members are refused.
      */
     public @NotNull ActivityListResponse list(@NotNull ListActivityParams params) {
-        return http.requestAs(
-                HttpRequest.get("/api/activity")
-                        .query("workspace_id", params.getWorkspaceId())
-                        .query("page", params.getPage())
-                        .query("per_page", params.getPerPage())
-                        .query("category", params.getCategory())
-                        .query("action", params.getAction())
-                        .query("user_id", params.getUserId()),
-                ActivityListResponse.class);
+        return http.requestAs(params.applyTo(HttpRequest.get("/api/activity")), ActivityListResponse.class);
+    }
+
+    /** The first page with no filters. See {@link #list(ListActivityParams)}. @since 0.3.0 */
+    public @NotNull ActivityListResponse list(@NotNull String workspaceId) {
+        return list(new ListActivityParams(workspaceId));
     }
 }

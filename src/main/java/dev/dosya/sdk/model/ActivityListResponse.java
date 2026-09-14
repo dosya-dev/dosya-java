@@ -7,9 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Response returned when listing activity entries for a workspace.
- *
- * <p>Contains the activity entries, workspace members involved, and pagination metadata.</p>
+ * One page of a workspace activity log, newest first.
  *
  * @since 0.1.0
  */
@@ -17,16 +15,18 @@ public final class ActivityListResponse {
 
     private List<ActivityEntry> activities;
     private List<Member> members;
-    private Pagination pagination;
+    private ActivityPagination pagination;
 
     private ActivityListResponse() {}
 
-    public @NotNull List<ActivityEntry> getActivities() { return activities != null ? Collections.unmodifiableList(activities) : Collections.<ActivityEntry>emptyList(); }
-    public @NotNull List<Member> getMembers() { return members != null ? Collections.unmodifiableList(members) : Collections.<Member>emptyList(); }
-    public @Nullable Pagination getPagination() { return pagination; }
+    public @NotNull List<ActivityEntry> getActivities() { return activities != null ? Collections.unmodifiableList(activities) : Collections.emptyList(); }
+    /** Every workspace member, for filter pickers. */
+    public @NotNull List<Member> getMembers() { return members != null ? Collections.unmodifiableList(members) : Collections.emptyList(); }
+    /** @since 0.3.0 (was the file-listing {@code Pagination}, whose total fields never matched) */
+    public @NotNull ActivityPagination getPagination() { return pagination; }
 
     /**
-     * A workspace member referenced in activity entries.
+     * A workspace member.
      *
      * @since 0.1.0
      */
@@ -38,9 +38,9 @@ public final class ActivityListResponse {
 
         private Member() {}
 
-        public String getId() { return id; }
-        public String getName() { return name; }
-        public String getEmail() { return email; }
+        public @NotNull String getId() { return id; }
+        public @NotNull String getName() { return name; }
+        public @NotNull String getEmail() { return email; }
         public @Nullable String getAvatarUrl() { return avatarUrl; }
     }
 }
