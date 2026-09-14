@@ -28,11 +28,14 @@ public final class UploadInitResponse {
     public @NotNull String getSessionId() { return sessionId; }
     public @Nullable String getUploadUrl() { return uploadUrl; }
     public @NotNull String getWorkspaceId() { return workspaceId; }
+    /** The sanitized name the file will be stored under. */
     public @NotNull String getFileName() { return fileName; }
     public long getFileSize() { return fileSize; }
     public @NotNull String getMimeType() { return mimeType; }
+    /** Lowercase extension with the dot, or "" when the name has none. */
     public @NotNull String getExtension() { return extension; }
     public @NotNull String getRegion() { return region; }
+    /** Part info for files over 50 MiB (10 MiB parts); null means one PUT. */
     public @Nullable Resumable getResumable() { return resumable; }
 
     /**
