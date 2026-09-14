@@ -24,12 +24,15 @@ import java.util.function.Consumer;
 public final class DosyaClientOptions {
 
     private final String apiKey;
-    private String baseUrl = "https://dosya.dev";
+    private String baseUrl = "https://api.dosya.dev";
     private int maxRetries = 3;
     private long baseDelay = 500;
     private long maxDelay = 30000;
     private long connectTimeout = 10000;
     private long readTimeout = 30000;
+    private long uploadTimeout = 600000;
+    private boolean readYourWrites = true;
+    private java.net.http.HttpClient httpClient;
     private Consumer<RateLimitInfo> onRateLimit;
     private Consumer<String> debug;
     private DosyaInterceptor interceptor;
@@ -48,14 +51,20 @@ public final class DosyaClientOptions {
     }
 
     /**
-     * Sets the base URL for the Dosya API. Must use HTTPS.
+     * Sets the API origin. Must use HTTPS, except for a loopback host
+     * ({@code http://localhost}, {@code http://127.0.0.1}) used in local testing.
+     * Paths already carry {@code /api/...}.
      *
-     * @param baseUrl the base URL (e.g. {@code https://dosya.dev})
+     * @param baseUrl the base URL (default {@code https://api.dosya.dev})
      * @return this options instance for chaining
-     * @throws IllegalArgumentException if the URL does not use HTTPS
+     * @throws IllegalArgumentException if the URL does not use HTTPS and is not loopback
      */
     public DosyaClientOptions baseUrl(@NotNull String baseUrl) {
-        if (baseUrl != null && !baseUrl.toLowerCase().startsWith("https://")) {
+        if (baseUrl == null) throw new IllegalArgumentException("Base URL is required");
+        String lower = baseUrl.toLowerCase(java.util.Locale.ROOT);
+        boolean loopback = lower.startsWith("http://localhost") || lower.startsWith("http://127.0.0.1")
+                || lower.startsWith("http://[::1]");
+        if (!lower.startsWith("https://") && !loopback) {
             throw new IllegalArgumentException("Base URL must use HTTPS: " + baseUrl);
         }
         this.baseUrl = baseUrl;
@@ -119,13 +128,51 @@ public final class DosyaClientOptions {
     }
 
     /**
-     * Sets the read/response timeout in milliseconds.
+     * Sets the per-attempt timeout for JSON requests in milliseconds. It covers
+     * waiting for the response and reading its body.
      *
-     * @param readTimeout the read timeout in ms (default 30000)
+     * @param readTimeout the timeout in ms (default 30000)
      * @return this options instance for chaining
      */
     public DosyaClientOptions readTimeout(long readTimeout) {
         this.readTimeout = readTimeout;
+        return this;
+    }
+
+    /**
+     * Sets the per-attempt timeout in milliseconds for requests that carry file
+     * bytes (single-request uploads, multipart parts, batch uploads, completing a
+     * multipart upload).
+     *
+     * @param uploadTimeout the timeout in ms (default 600000)
+     * @return this options instance for chaining
+     */
+    public DosyaClientOptions uploadTimeout(long uploadTimeout) {
+        this.uploadTimeout = uploadTimeout;
+        return this;
+    }
+
+    /**
+     * Whether to echo the {@code X-D1-Bookmark} header from the latest response on
+     * later requests, so a read right after a write never lands on a stale replica.
+     *
+     * @param readYourWrites default {@code true}
+     * @return this options instance for chaining
+     */
+    public DosyaClientOptions readYourWrites(boolean readYourWrites) {
+        this.readYourWrites = readYourWrites;
+        return this;
+    }
+
+    /**
+     * Uses a caller-configured {@link java.net.http.HttpClient} (proxies, custom TLS,
+     * executors). Its redirect policy is ignored: the SDK decides per request.
+     *
+     * @param httpClient the client, or null for the SDK default
+     * @return this options instance for chaining
+     */
+    public DosyaClientOptions httpClient(java.net.http.@Nullable HttpClient httpClient) {
+        this.httpClient = httpClient;
         return this;
     }
 
@@ -176,6 +223,12 @@ public final class DosyaClientOptions {
     public long getConnectTimeout() { return connectTimeout; }
     /** Returns the read/response timeout in milliseconds. */
     public long getReadTimeout() { return readTimeout; }
+    /** Returns the upload timeout in milliseconds. */
+    public long getUploadTimeout() { return uploadTimeout; }
+    /** Returns whether read-your-writes bookmarks are echoed. */
+    public boolean isReadYourWrites() { return readYourWrites; }
+    /** Returns the caller-supplied HTTP client, or null. */
+    public java.net.http.@Nullable HttpClient getHttpClient() { return httpClient; }
     /** Returns the rate-limit callback, or null. */
     @Nullable public Consumer<RateLimitInfo> getOnRateLimit() { return onRateLimit; }
     /** Returns the debug callback, or null. */

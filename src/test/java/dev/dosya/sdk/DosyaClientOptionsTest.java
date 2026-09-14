@@ -37,7 +37,7 @@ class DosyaClientOptionsTest {
     @Test
     void defaultBaseUrl() {
         DosyaClientOptions options = new DosyaClientOptions("dos_key");
-        assertThat(options.getBaseUrl()).isEqualTo("https://dosya.dev");
+        assertThat(options.getBaseUrl()).isEqualTo("https://api.dosya.dev");
     }
 
     @Test

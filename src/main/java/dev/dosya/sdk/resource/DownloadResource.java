@@ -47,14 +47,19 @@ public final class DownloadResource {
      * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
      */
     public @NotNull String getUrl(@NotNull String fileId, @Nullable Integer version, @Nullable String unlockToken) {
-        DosyaHttpClient.HttpResult result = http.doFetch(
+        java.net.http.HttpResponse<InputStream> res = http.requestRaw(
                 HttpRequest.get("/api/files/" + encode(fileId) + "/download")
                         .query("version", version)
                         .query("ut", unlockToken)
-                        .rawResponse(true));
-
-        if (result.body != null && !result.body.isEmpty()) {
-            return result.body;
+                        .manualRedirect(true));
+        try {
+            res.body().close();
+        } catch (IOException ignored) {
+            // Redirect body is empty.
+        }
+        String location = res.headers().firstValue("Location").orElse(null);
+        if (location != null && !location.isEmpty()) {
+            return location;
         }
 
         throw new DosyaException("Could not extract download URL from response");
