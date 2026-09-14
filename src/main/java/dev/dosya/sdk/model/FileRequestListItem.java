@@ -4,14 +4,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * One file request, as returned by {@code fileRequests().get()}.
+ * A row of {@code fileRequests().list()}.
  *
- * @since 0.1.0
+ * @since 0.3.0
  */
-public final class FileRequestDetail {
+public final class FileRequestListItem {
 
     private String id;
-    private String workspaceId;
     private String token;
     private String url;
     private String title;
@@ -28,33 +27,25 @@ public final class FileRequestDetail {
     private String folderName;
     private String createdByName;
 
-    private FileRequestDetail() {}
+    private FileRequestListItem() {}
 
     public @NotNull String getId() { return id; }
-    /** @since 0.3.0 */
-    public @NotNull String getWorkspaceId() { return workspaceId; }
     public @NotNull String getToken() { return token; }
     /** Public upload page. */
     public @NotNull String getUrl() { return url; }
     public @Nullable String getTitle() { return title; }
     public @Nullable String getMessage() { return message; }
-    /** @since 0.3.0 (was {@code int getIsPasswordProtected()}) */
     public boolean isPasswordProtected() { return isPasswordProtected; }
     public @Nullable Long getExpiresAt() { return expiresAt; }
-    /** @since 0.3.0 */
+    /** Comma-separated, e.g. {@code ".pdf,.docx"}; null = any. */
     public @Nullable String getAllowedExtensions() { return allowedExtensions; }
-    /** @since 0.3.0 */
     public @Nullable Long getMaxFileSizeBytes() { return maxFileSizeBytes; }
-    /** @since 0.3.0 */
     public @Nullable Integer getMaxFiles() { return maxFiles; }
     public int getUploadCount() { return uploadCount; }
-    /** @since 0.3.0 */
     public boolean isRevoked() { return isRevoked; }
     public long getCreatedAt() { return createdAt; }
-    /** @since 0.3.0 */
+    /** Destination folder, or null for the workspace root. */
     public @Nullable String getFolderId() { return folderId; }
-    /** @since 0.3.0 */
     public @Nullable String getFolderName() { return folderName; }
-    /** @since 0.3.0 */
     public @Nullable String getCreatedByName() { return createdByName; }
 }
