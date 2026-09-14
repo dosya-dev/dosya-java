@@ -7,7 +7,9 @@ import org.jetbrains.annotations.Nullable;
  * Represents a share bundle link that groups multiple files into a single shareable URL.
  *
  * @since 0.1.0
+ * @deprecated since 0.3.0 {@code files().createShareBundle} returns {@link CreatedShareBundle}.
  */
+@Deprecated
 public final class ShareBundleLink {
 
     private String id;
