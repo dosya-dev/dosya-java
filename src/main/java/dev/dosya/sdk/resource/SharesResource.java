@@ -52,7 +52,8 @@ public final class SharesResource {
      *
      * <p>The creator may edit; anyone else needs {@code view_all_shares}. 409 when revoked.
      * Invalid values (empty patch, short password, bad expiry, download cap or recipients) are
-     * a 400 whose error message explains the problem. Free-plan links are clamped to 7 days.
+     * a 400 whose error message explains the problem. A new expiry on a link whose creator is on
+     * the free plan is clamped to 7 days.
      * dosya.dev recipient addresses are refused unless the caller is a dosya.dev account.
      *
      * @since 0.3.0

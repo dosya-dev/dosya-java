@@ -156,8 +156,9 @@ public final class WorkspacesResource {
      *
      * <p>By design an API key cannot delete a workspace unattended: someone has to read the
      * code from the owner's inbox. Errors: 400 name mismatch / members remain / last
-     * workspace / missing code, 401 wrong or expired code, 429 code burned after 5
-     * attempts, 403 not the owner. The result is pending (HTTP 202) when the deletion
+     * workspace / missing code, 401 wrong or expired code (the 5th wrong attempt burns the
+     * code, and every later call answers 401 "expired" - call {@link #requestDeletion(String)}
+     * again), 403 not the owner. The result is pending (HTTP 202) when the deletion
      * continues in the background. Never retried: a replay would spend another attempt.
      *
      * @param code        the 6-digit code emailed by {@link #requestDeletion(String)}

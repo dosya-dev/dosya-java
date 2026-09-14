@@ -555,13 +555,15 @@ public final class UploadResource {
                 // A dropped connection, a timeout or an edge 5xx may hide a commit that happened
                 // (or is still happening). Re-sending would store the bytes again as a new
                 // version, so learn the session's outcome first.
-                if (!isPreHandlerRefusal(err)) settleBeforeRetry(sessionId, err);
+                UploadStatusResponse settled = isPreHandlerRefusal(err) ? null : settleBeforeRetry(sessionId, err, false);
 
-                // The server marks a session failed (or leaves it uploading) once a PUT has
-                // started, so the same session would answer 409: open a new one.
                 http.sleep(delay);
-                emit(onProgress, progress(0, size, "initializing", null, null));
-                session = init(initParams);
+                // A session still `pending` never saw the PUT, so it can take it again. Once a PUT
+                // has started the server marks the session failed, which answers 409: open a new one.
+                if (settled == null || !"pending".equals(settled.getStatus())) {
+                    emit(onProgress, progress(0, size, "initializing", null, null));
+                    session = init(initParams);
+                }
             }
         }
     }
@@ -669,7 +671,12 @@ public final class UploadResource {
             // impossible to complete - so a session with no parts yet gets its first part alone.
             if (job.uploaded.isEmpty() && !queue.isEmpty()) {
                 int firstPart = queue.get(0);
-                send.send(firstPart, readPart(job, firstPart));
+                byte[] firstBytes = readPart(job, firstPart);
+                firstPartWithRetry(sessionId, firstPart, firstBytes);
+                synchronized (lock) {
+                    if (job.uploaded.add(firstPart)) bytesDone[0] += job.partLength(firstPart);
+                    emitUploading.run();
+                }
                 queue = queue.subList(1, queue.size());
             }
             runPool("dosya-upload-part", new ArrayList<>(queue), job.concurrency, n -> {
@@ -714,6 +721,42 @@ public final class UploadResource {
         }
     }
 
+    /**
+     * The first part of a fresh session, retried without reopening the race it exists to
+     * avoid: an attempt whose response was lost may still be creating the storage multipart
+     * upload, and a retry arriving before that is recorded would create a second one. So
+     * before each retry, wait until the server shows the part stored (done), or shows the
+     * multipart upload recorded (a retry now reuses it), or polling runs out.
+     */
+    private void firstPartWithRetry(String sessionId, int partNumber, byte[] bytes) {
+        for (int attempt = 0; ; attempt++) {
+            try {
+                uploadPart(sessionId, partNumber, bytes);
+                return;
+            } catch (DosyaException err) {
+                Long delay = retryDelay(err, attempt);
+                if (delay == null) {
+                    throw new DosyaUploadException("Failed to upload part " + partNumber + ": " + err.getMessage(),
+                            sessionId, partNumber, err);
+                }
+                if (!isPreHandlerRefusal(err)) {
+                    for (int i = 0; i <= SETTLE_POLLS; i++) {
+                        UploadStatusResponse st;
+                        try {
+                            st = status(sessionId);
+                        } catch (DosyaException statusErr) {
+                            break;
+                        }
+                        if (st.getUploadedParts().contains(partNumber)) return;
+                        if (st.hasMultipart() || !"uploading".equals(st.getStatus()) && !"pending".equals(st.getStatus())) break;
+                        if (i < SETTLE_POLLS) http.sleep(http.backoff(i));
+                    }
+                }
+                http.sleep(delay);
+            }
+        }
+    }
+
     private UploadResult completeOnce(String sessionId, Times times) {
         HttpRequest req = HttpRequest.post("/api/upload/" + seg(sessionId) + "/complete")
                 // Assembling a large object and committing it can take well over the read timeout.
@@ -739,9 +782,10 @@ public final class UploadResource {
                 }
                 Long delay = retryDelay(err, attempt);
                 if (delay == null) throw err;
-                // Only repeat complete once the first attempt is known to have ended without
-                // finishing; a racing second complete can fail a finished session.
-                if (!isPreHandlerRefusal(err)) settleBeforeRetry(sessionId, err);
+                // Give an attempt that may still be running time to finish before repeating it:
+                // a racing second complete can fail a finished session. A session with parts
+                // reads `uploading` until complete commits, so after polling it is retried.
+                if (!isPreHandlerRefusal(err)) settleBeforeRetry(sessionId, err, true);
                 http.sleep(delay);
             }
         }
@@ -749,11 +793,13 @@ public final class UploadResource {
 
     /**
      * Waits until the server has finished handling an attempt whose outcome the client could
-     * not see. Returns when the session did not complete; throws when it did (the file
-     * exists), when it is still being processed after polling, or when its state cannot be
-     * read - in each case a retry could store the file twice.
+     * not see, and returns the session's status. Throws when it completed (the file exists)
+     * or when its state cannot be read. A session still {@code uploading} after polling
+     * throws for a single-request upload (the PUT may still be storing the file) but is
+     * returned for {@code complete}, because a multipart session reads {@code uploading}
+     * from its first part until it commits.
      */
-    private void settleBeforeRetry(String sessionId, Throwable cause) {
+    private UploadStatusResponse settleBeforeRetry(String sessionId, Throwable cause, boolean forComplete) {
         for (int i = 0; ; i++) {
             UploadStatusResponse st;
             try {
@@ -766,8 +812,9 @@ public final class UploadResource {
                 throw new DosyaUploadException("The upload completed but its response was lost; "
                         + "the file exists but its id is unknown", sessionId, null, cause);
             }
-            if (!"uploading".equals(st.getStatus())) return;
+            if (!"uploading".equals(st.getStatus())) return st;
             if (i >= SETTLE_POLLS) {
+                if (forComplete) return st;
                 throw new DosyaUploadException("The server is still processing an earlier attempt; "
                         + "not retrying to avoid storing the file twice", sessionId, null, cause);
             }

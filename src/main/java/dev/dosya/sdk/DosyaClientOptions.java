@@ -166,7 +166,8 @@ public final class DosyaClientOptions {
 
     /**
      * Uses a caller-configured {@link java.net.http.HttpClient} (proxies, custom TLS,
-     * executors). Its redirect policy is ignored: the SDK decides per request.
+     * executors). It must follow redirects ({@code HttpClient.Redirect.NORMAL}): thumbnails
+     * answer with a same-origin redirect for some formats.
      *
      * @param httpClient the client, or null for the SDK default
      * @return this options instance for chaining

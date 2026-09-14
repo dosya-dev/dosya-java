@@ -26,7 +26,7 @@ public final class ActivityResource {
 
     /**
      * One page of the workspace activity log, newest first. Needs the {@code view_activity}
-     * permission; folder-confined members are refused.
+     * permission.
      */
     public @NotNull ActivityListResponse list(@NotNull ListActivityParams params) {
         return http.requestAs(params.applyTo(HttpRequest.get("/api/activity")), ActivityListResponse.class);

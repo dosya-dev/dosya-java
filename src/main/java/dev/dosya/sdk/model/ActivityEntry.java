@@ -69,7 +69,7 @@ public final class ActivityEntry {
     public @Nullable String getResourceName() { return resourceName; }
     /** Unix seconds. */
     public long getCreatedAt() { return createdAt; }
-    /** Null for system actors. */
+    /** Null for system actors and for actors whose account no longer exists (see {@link #getActorId()}). */
     public @Nullable String getUserId() { return userId; }
     public @Nullable String getUserName() { return userName; }
     /** @since 0.3.0 */

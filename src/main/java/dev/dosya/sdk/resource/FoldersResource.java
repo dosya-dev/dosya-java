@@ -123,7 +123,8 @@ public final class FoldersResource {
     }
 
     /**
-     * Every live folder in the workspace as one flat list (no pagination). For large workspaces
+     * Every live folder the caller can reach as one flat list (no pagination): the whole
+     * workspace, or only their subtree for a folder-confined member. For large workspaces
      * prefer {@link #children} and {@link #search}. Needs {@code access_files}.
      */
     public @NotNull List<FolderTreeItem> tree(@NotNull String workspaceId) {
@@ -132,8 +133,9 @@ public final class FoldersResource {
     }
 
     /**
-     * Direct subfolders of {@code parentId} ({@code null} for the root), each with
-     * {@code hasChildren}. 404 for a hidden parent. Needs {@code access_files}.
+     * Direct subfolders of {@code parentId}, each with {@code hasChildren}. {@code null} means the
+     * root, or a folder-confined member's own folder. 404 for a hidden parent. Needs
+     * {@code access_files}.
      *
      * @since 0.3.0
      */
@@ -351,6 +353,17 @@ public final class FoldersResource {
     /** Live share links on this folder the caller may see. @since 0.3.0 */
     public @NotNull List<ItemShareLink> getShareLinks(@NotNull String folderId) {
         return unmodifiable(ShareLinks.list(http, ShareLinks.Kind.FOLDERS, folderId));
+    }
+
+    /**
+     * Number of items inside this folder that its share links do not expose to recipients
+     * (hidden or locked descendants). The same call as {@link #getShareLinks(String)}.
+     *
+     * @since 0.3.0
+     */
+    public int getShareExcludedCount(@NotNull String folderId) {
+        JsonObject res = http.request(HttpRequest.get(base(folderId) + "/share"));
+        return res.has("excluded_count") && !res.get("excluded_count").isJsonNull() ? res.get("excluded_count").getAsInt() : 0;
     }
 
     /**

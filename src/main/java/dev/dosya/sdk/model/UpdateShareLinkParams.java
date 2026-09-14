@@ -25,7 +25,10 @@ public final class UpdateShareLinkParams {
 
     public UpdateShareLinkParams() {}
 
-    /** Unix seconds, at least a minute ahead and at most 3650 days out; wins over {@code expiresInDays}. Null = never. */
+    /**
+     * Unix seconds, at least a minute ahead and at most 3650 days out. A non-null value wins over
+     * {@code expiresInDays}; null means never unless {@code expiresInDays} is also set.
+     */
     public @NotNull UpdateShareLinkParams expiresAt(@Nullable Long expiresAt) { fields.put("expires_at", expiresAt); return this; }
     /** Days from now; 0 or null means never, still capped by the workspace's maximum. */
     public @NotNull UpdateShareLinkParams expiresInDays(@Nullable Integer days) { fields.put("expires_in_days", days); return this; }

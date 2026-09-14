@@ -18,6 +18,7 @@ Brings the SDK in line with the current dosya.dev API. Several 0.2.1 methods did
 - `files().copy(...)` returns `CopiedFile`; `newName` was never honoured and the old `FileDetail` result was always empty.
 - `files().getShareLinks/createShareLink/createShareBundle` return `ItemShareLink`, `CreatedShareLink` and `CreatedShareBundle`; `ShareLinkDetail` and `ShareBundleLink` are deprecated.
 - `folders().rename()` called the restore endpoint; it now calls `/rename`. `folders().delete()` returns a trash-or-purge `DeleteFolderResult`.
+- `folders().create()`: `CreateFolderResponse.getFolder()` returns `CreatedFolder` and `getCreatedFolders()` returns `List<CreatedFolderEntry>` instead of `FolderDetail`, matching the fields the API actually returns.
 - `download().getUrl(fileId)` returns `DownloadLink` (url, size, name, region, expiry) from `/download-url` instead of scraping a redirect. Storage errors are `DosyaApiException` with their real status.
 - `workspaces().list()` returns `WorkspaceListResponse`; `create()` returns `CreatedWorkspace`; `updateSettings()` takes `WorkspaceSettingsUpdate`; `delete(id)` is replaced by `delete(id, code, confirmName)`; `UpdateWorkspaceParams.defaultRegion()` is removed (the region is fixed at creation).
 - `fileRequests().get()` reads `/:id/uploads` and returns `FileRequestWithActivity`; `update()` uses PATCH; `resend(id, recipientId)` takes one recipient; `listUploads()`/`listRecipients()` return the real shapes.

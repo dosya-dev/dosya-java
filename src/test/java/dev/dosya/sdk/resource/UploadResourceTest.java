@@ -486,6 +486,71 @@ class UploadResourceTest extends ApiTestSupport {
     }
 
     @Test
+    void retriesCompleteWhenTheSessionStillReadsUploadingAfterPolling() {
+        // A session with parts reads `uploading` until complete commits, so a failed complete
+        // that left no trace must still be repeated once polling has given it time to finish.
+        router.route("POST /api/upload/init", multipartInit("upl_m", 8, 4));
+        partRoutes("upl_m", 2, UploadResourceTest::partOk);
+        router.route("POST /api/upload/upl_m/complete", fail(502, "Bad gateway"), fileOk(""));
+        router.route("GET /api/upload/upl_m/status", statusReply("upl_m", "uploading", 8, 4, 2, "[1,2]", true, 8));
+
+        UploadResult result = retrying().file(UploadParams.fromBytes("ws_1", "big.bin", bytes(8)));
+
+        assertThat(result.getFile().getId()).isEqualTo("file_1");
+        assertThat(router.keys()).filteredOn(k -> k.endsWith("/complete")).hasSize(2);
+        assertThat(router.keys()).filteredOn(k -> k.endsWith("/status")).hasSize(7);
+    }
+
+    @Test
+    void doesNotResendAFirstPartWhoseLostResponseWasStored() {
+        router.route("POST /api/upload/init", multipartInit("upl_m", 8, 4));
+        int[] firstPart = {0};
+        router.handle("PUT /api/upload/upl_m/part/1", r -> firstPart[0]++ == 0
+                ? new MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST)
+                : partOk(1));
+        router.handle("PUT /api/upload/upl_m/part/2", r -> partOk(2));
+        router.route("GET /api/upload/upl_m/status", statusReply("upl_m", "uploading", 8, 4, 2, "[1]", true, 4));
+        router.route("POST /api/upload/upl_m/complete", fileOk(""));
+
+        retrying().file(UploadParams.fromBytes("ws_1", "big.bin", bytes(8)));
+
+        assertThat(router.keys()).filteredOn("PUT /api/upload/upl_m/part/1"::equals).hasSize(1);
+        assertThat(router.keys()).filteredOn("PUT /api/upload/upl_m/part/2"::equals).hasSize(1);
+    }
+
+    @Test
+    void retriesTheFirstPartOnceTheMultipartUploadIsRecorded() {
+        router.route("POST /api/upload/init", multipartInit("upl_m", 8, 4));
+        int[] firstPart = {0};
+        router.handle("PUT /api/upload/upl_m/part/1", r -> firstPart[0]++ == 0 ? fail(502, "Bad gateway") : partOk(1));
+        router.handle("PUT /api/upload/upl_m/part/2", r -> partOk(2));
+        router.route("GET /api/upload/upl_m/status", statusReply("upl_m", "uploading", 8, 4, 2, "[]", true, 0));
+        router.route("POST /api/upload/upl_m/complete", fileOk(""));
+
+        retrying().file(UploadParams.fromBytes("ws_1", "big.bin", bytes(8)));
+
+        assertThat(router.keys()).filteredOn("PUT /api/upload/upl_m/part/1"::equals).hasSize(2);
+        // One status read: has_multipart was already true, so the retry could go at once.
+        assertThat(router.keys()).filteredOn(k -> k.endsWith("/status")).hasSize(1);
+    }
+
+    @Test
+    void reusesASessionThatNeverSawTheFailedPut() {
+        router.route("POST /api/upload/init", singleInit("upl_1", 5));
+        int[] put = {0};
+        router.handle("PUT /api/upload/upl_1", r -> put[0]++ == 0
+                ? new MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST)
+                : fileOk(""));
+        router.route("GET /api/upload/upl_1/status", singleStatus("upl_1", "pending"));
+
+        UploadResult result = retrying().file(UploadParams.fromBytes("ws_1", "a.txt", bytes(5)));
+
+        assertThat(result.getSessionId()).isEqualTo("upl_1");
+        assertThat(router.keys()).filteredOn("POST /api/upload/init"::equals).hasSize(1);
+        assertThat(router.keys()).filteredOn("PUT /api/upload/upl_1"::equals).hasSize(2);
+    }
+
+    @Test
     void readsAStreamPartByPart() {
         router.route("POST /api/upload/init", multipartInit("upl_m", 10, 4));
         partRoutes("upl_m", 3, UploadResourceTest::partOk);

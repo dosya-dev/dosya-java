@@ -176,8 +176,14 @@ public final class DownloadResource {
         Path dir = absolute.getParent();
         Path tmp = null;
         try (InputStream in = downloadStream(fileId, options)) {
-            tmp = Files.createTempFile(dir, ".dosya-download-", ".part");
-            long written = Files.copy(in, tmp, StandardCopyOption.REPLACE_EXISTING);
+            // Not Files.createTempFile: it creates owner-only (0600) files, and the move would
+            // keep that mode. A plain create gets the process's normal permissions.
+            tmp = dir.resolve(".dosya-download-" + java.util.UUID.randomUUID() + ".part");
+            long written;
+            try (java.io.OutputStream out = Files.newOutputStream(tmp, java.nio.file.StandardOpenOption.CREATE_NEW,
+                    java.nio.file.StandardOpenOption.WRITE)) {
+                written = in.transferTo(out);
+            }
             Files.move(tmp, absolute, StandardCopyOption.REPLACE_EXISTING);
             tmp = null;
             return written;

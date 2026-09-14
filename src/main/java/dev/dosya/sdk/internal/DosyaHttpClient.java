@@ -92,6 +92,12 @@ public final class DosyaHttpClient {
                 // D1 answers flags as 0/1 on some routes and true/false on others.
                 .registerTypeAdapter(boolean.class, LenientBoolean.INSTANCE)
                 .registerTypeAdapter(Boolean.class, LenientBoolean.INSTANCE)
+                // Integer columns can hold a stored decimal (7.5); one odd row must not
+                // make a whole response unreadable. Decimals are truncated.
+                .registerTypeAdapter(int.class, LenientNumber.INTEGER)
+                .registerTypeAdapter(Integer.class, LenientNumber.INTEGER)
+                .registerTypeAdapter(long.class, LenientNumber.LONG)
+                .registerTypeAdapter(Long.class, LenientNumber.LONG)
                 .create();
         // Request bodies keep explicit nulls: `parent_id: null` means "the root",
         // and a missing key would mean something else to several handlers.
@@ -267,7 +273,7 @@ public final class DosyaHttpClient {
 
         for (int attempt = 0; ; attempt++) {
             boolean canRetry = attempt < attempts;
-            java.net.http.HttpRequest built = build(req, uri);
+            java.net.http.HttpRequest built = build(req, uri, timeoutMs);
             debug(method + " " + url + " (attempt " + (attempt + 1) + "/" + (attempts + 1) + ")");
             if (interceptor != null) interceptor.beforeRequest(method, url);
             long start = System.currentTimeMillis();
@@ -338,7 +344,7 @@ public final class DosyaHttpClient {
         return idempotent ? backoff(attempt) : null;
     }
 
-    private java.net.http.HttpRequest build(HttpRequest req, URI uri) {
+    private java.net.http.HttpRequest build(HttpRequest req, URI uri, long timeoutMs) {
         java.net.http.HttpRequest.Builder b = java.net.http.HttpRequest.newBuilder(uri)
                 .header("Authorization", "Bearer " + apiKey)
                 .header("User-Agent", "dosya-java/" + SdkVersion.VERSION);
@@ -357,8 +363,13 @@ public final class DosyaHttpClient {
             publisher = null;
         }
         if (req.getHeaders() != null) req.getHeaders().forEach(b::header);
+        // The JDK's own response timeout as well as the future's: on JDK 11-15 cancelling the
+        // future does not abort the exchange, but this timeout does.
+        if (timeoutMs > 0) b.timeout(Duration.ofMillis(timeoutMs));
 
         if (publisher != null) b.method(req.getMethod(), publisher);
+        else if ("GET".equals(req.getMethod())) b.GET();
+        else if ("DELETE".equals(req.getMethod()) && req.getBody() == null) b.DELETE();
         else b.method(req.getMethod(), java.net.http.HttpRequest.BodyPublishers.noBody());
         return b.build();
     }
@@ -384,6 +395,8 @@ public final class DosyaHttpClient {
             return timeoutMs > 0 ? future.get(timeoutMs, TimeUnit.MILLISECONDS) : future.get();
         } catch (TimeoutException e) {
             future.cancel(true);
+            // A response that still arrives must not hold its connection open.
+            future.thenAccept(r -> discard(r.body()));
             throw e;
         } catch (InterruptedException e) {
             future.cancel(true);
@@ -477,7 +490,10 @@ public final class DosyaHttpClient {
     static @Nullable Long parseRetryAfter(@Nullable String value) {
         if (value == null) return null;
         String trimmed = value.trim();
-        if (trimmed.matches("\\d+")) return Long.parseLong(trimmed);
+        if (trimmed.matches("\\d+")) {
+            // Cap absurd values so millisecond arithmetic cannot overflow.
+            return trimmed.length() > 9 ? 999_999_999L : Long.parseLong(trimmed);
+        }
         try {
             ZonedDateTime date = ZonedDateTime.parse(trimmed, DateTimeFormatter.RFC_1123_DATE_TIME);
             long seconds = (date.toInstant().toEpochMilli() - System.currentTimeMillis() + 999) / 1000;

@@ -94,6 +94,7 @@ public final class FileRequestsResource {
      */
     @Deprecated
     public void update(@NotNull String requestId, @Nullable String title, @Nullable String message) {
+        if (title == null && message == null) return; // nothing to change; the API would answer 400
         UpdateFileRequestParams params = new UpdateFileRequestParams();
         if (title != null) params.title(title);
         if (message != null) params.message(message);

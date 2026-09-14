@@ -360,8 +360,12 @@ public final class FilesResource {
         SetHideParams params;
         if ("none".equals(hiddenMode)) params = SetHideParams.none();
         else if ("everyone".equals(hiddenMode)) params = SetHideParams.everyone();
-        else if ("users".equals(hiddenMode)) params = SetHideParams.users(targetIds);
-        else if ("roles".equals(hiddenMode)) params = SetHideParams.roles(targetIds);
+        else if ("users".equals(hiddenMode) || "roles".equals(hiddenMode)) {
+            if (targetIds == null || targetIds.isEmpty()) {
+                throw new IllegalArgumentException("Hidden mode '" + hiddenMode + "' needs at least one target id");
+            }
+            params = "users".equals(hiddenMode) ? SetHideParams.users(targetIds) : SetHideParams.roles(targetIds);
+        }
         else throw new IllegalArgumentException("Unknown hidden mode: " + hiddenMode);
         hide(fileId, params);
     }

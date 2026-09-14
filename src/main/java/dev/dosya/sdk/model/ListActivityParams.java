@@ -42,7 +42,8 @@ public final class ListActivityParams {
 
     /**
      * One or more category wire values ({@code files}, {@code folders}, {@code sharing},
-     * {@code members}, {@code workspace}, {@code comments}). Unknown values are ignored by the API.
+     * {@code members}, {@code workspace}, {@code comments}). Unknown values are ignored by the API;
+     * if every value is unknown, no category filter applies at all.
      */
     public @NotNull ListActivityParams category(@NotNull String... categories) { this.category = join(Arrays.asList(categories)); return this; }
     /** One or more categories. @since 0.3.0 */

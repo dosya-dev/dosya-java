@@ -88,6 +88,8 @@ Every request carries an API key (`dos_...`). Create one in the web app under **
 |---|---|
 | `read` | GET endpoints, downloads, archive downloads |
 | `upload` | Upload endpoints and `folders().create` only |
+
+Any scope can call `me().revokeCurrentKey()`.
 | `full` | Everything an API key can reach |
 
 A key can also be pinned to one workspace. Pinned keys are refused (403) on routes whose workspace cannot be checked up front, such as webhook management, comment writes, share bundles, remote downloads, and team or share-link changes by id.
@@ -268,7 +270,7 @@ try {
 | `remoteDownloads()` | `list`, `create`, `cancel`, `waitFor` |
 | `me()` | `profile`, `permissions`, `updateName`, `revokeCurrentKey` |
 
-Every method's Javadoc lists its key scope, permission and limits.
+Method Javadoc notes the permission, limits and error codes that matter, and the key scope where it differs from the default (GET needs `read`, everything else `full`).
 
 Upgrading from 0.2.x? See [CHANGELOG.md](CHANGELOG.md) for the breaking changes.
 
@@ -281,7 +283,7 @@ The SDK supports two logging mechanisms:
 Add any SLF4J binding to your classpath (Logback, Log4j2, etc.) and the SDK will log automatically:
 
 - **DEBUG** - every request/response with URL, status code, and duration
-- **WARN** - retries (rate limits, server errors, network errors)
+- **WARN** - retries after rate limits, server errors and network errors (timeout retries go to the debug callback)
 
 ```xml
 <!-- Example: add Logback -->
