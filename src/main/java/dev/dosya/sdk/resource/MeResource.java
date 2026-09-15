@@ -1,24 +1,22 @@
 package dev.dosya.sdk.resource;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import dev.dosya.sdk.internal.DosyaHttpClient;
 import dev.dosya.sdk.internal.HttpRequest;
-import dev.dosya.sdk.model.ApiKeyItem;
-import dev.dosya.sdk.model.CreateApiKeyParams;
-import dev.dosya.sdk.model.CreatedApiKey;
+import dev.dosya.sdk.model.MyWorkspacePermissions;
 import dev.dosya.sdk.model.UserProfile;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import static dev.dosya.sdk.internal.DosyaHttpClient.encode;
-
 /**
- * Provides operations for the authenticated user's profile and API keys.
+ * The account that owns the API key: profile, per-workspace permissions, display name
+ * and self-revocation of the key.
+ *
+ * <p>Listing, creating and deleting API keys by id are session-only routes (a leaked key
+ * must not be able to mint or inspect its siblings), so they are not part of the SDK.
  *
  * @since 0.1.0
  */
@@ -36,7 +34,8 @@ public final class MeResource {
     }
 
     /**
-     * Retrieves the authenticated user's profile.
+     * Gets the account that owns this API key. Needs a {@code read} or {@code full} key.
+     * Note {@link UserProfile#getAvatarUrl()} is a storage key, not a URL.
      *
      * @return the user profile
      * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
@@ -47,40 +46,48 @@ public final class MeResource {
     }
 
     /**
-     * Lists all API keys belonging to the authenticated user.
+     * The caller's role and effective permissions in one workspace. Read scope.
+     * Throws 403 {@code Not a member} when the caller is not in the workspace, and 403
+     * for a key pinned to a different workspace. Permission keys stay snake_case
+     * (e.g. {@code upload_files}).
      *
-     * @return the list of API key items
+     * @param workspaceId the workspace to inspect
+     * @return the caller's role and permission map
      * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     * @since 0.3.0
      */
-    public @NotNull List<ApiKeyItem> listApiKeys() {
-        JsonObject resp = http.request(HttpRequest.get("/api/me/api-keys"));
-        Type listType = new TypeToken<List<ApiKeyItem>>() {}.getType();
-        return http.fromJson(resp.get("keys"), listType);
+    public @NotNull MyWorkspacePermissions permissions(@NotNull String workspaceId) {
+        return http.requestAs(
+                HttpRequest.get("/api/me/permissions").query("workspace_id", workspaceId),
+                MyWorkspacePermissions.class);
     }
 
     /**
-     * Creates a new API key for the authenticated user.
+     * Changes the account's display name (trimmed, 1-80 characters; 400 otherwise).
+     * Requires a {@code full} scope key.
      *
-     * @param params the API key creation parameters including name and optional scope/expiration
-     * @return the created API key, including the plain-text key (shown only once)
+     * @param name the new display name
+     * @return the stored name
      * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     * @since 0.3.0
      */
-    public @NotNull CreatedApiKey createApiKey(@NotNull CreateApiKeyParams params) {
-        Map<String, Object> body = new HashMap<String, Object>();
-        body.put("name", params.getName());
-        if (params.getScope() != null) body.put("scope", params.getScope());
-        if (params.getExpiresInDays() != null) body.put("expires_in_days", params.getExpiresInDays());
-        JsonObject resp = http.request(HttpRequest.post("/api/me/api-keys").body(body));
-        return http.fromJson(resp.get("key"), CreatedApiKey.class);
+    public @NotNull String updateName(@NotNull String name) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("name", name);
+        JsonObject resp = http.request(HttpRequest.put("/api/me/name").body(body));
+        JsonElement stored = resp.get("name");
+        return stored != null && stored.isJsonPrimitive() ? stored.getAsString() : name.trim();
     }
 
     /**
-     * Deletes an API key.
+     * Permanently revokes the API key this client authenticates with. Works at any key
+     * scope. The client is unusable afterwards: every later call fails with 401.
+     * Not retried, because a replay after success would itself 401.
      *
-     * @param keyId the unique identifier of the API key to delete
      * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     * @since 0.3.0
      */
-    public void deleteApiKey(@NotNull String keyId) {
-        http.request(HttpRequest.delete("/api/me/api-keys/" + encode(keyId)));
+    public void revokeCurrentKey() {
+        http.request(HttpRequest.delete("/api/me/api-keys/current").retry(HttpRequest.Retry.NEVER));
     }
 }

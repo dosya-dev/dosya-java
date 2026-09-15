@@ -7,7 +7,11 @@ import org.jetbrains.annotations.Nullable;
  * Detailed information about a share link for a file.
  *
  * @since 0.1.0
+ * @deprecated since 0.3.0 no longer returned by the files resource, whose rows never had this shape:
+ * {@code files().getShareLinks} returns
+ * {@link ItemShareLink} and {@code files().createShareLink} returns {@link CreatedShareLink}.
  */
+@Deprecated
 public final class ShareLinkDetail {
 
     private String id;

@@ -201,52 +201,6 @@ class ModelDeserializationTest {
         assertThat(profile.getEmailVerifiedAt()).isNull();
     }
 
-    // ---- CreatedApiKey ----
-
-    @Test
-    void createdApiKeyDeserializesCorrectly() {
-        String json = "{"
-                + "\"id\": \"key-1\","
-                + "\"name\": \"My Key\","
-                + "\"scope\": \"full\","
-                + "\"plain_key\": \"dos_live_abc123\","
-                + "\"expires_at\": 1800000000,"
-                + "\"created_at\": 1700000000"
-                + "}";
-
-        CreatedApiKey key = gson.fromJson(json, CreatedApiKey.class);
-        assertThat(key.getId()).isEqualTo("key-1");
-        assertThat(key.getName()).isEqualTo("My Key");
-        assertThat(key.getScope()).isEqualTo("full");
-        assertThat(key.getPlainKey()).isEqualTo("dos_live_abc123");
-        assertThat(key.getExpiresAt()).isEqualTo(1800000000L);
-        assertThat(key.getCreatedAt()).isEqualTo(1700000000L);
-    }
-
-    @Test
-    void createdApiKeyNullableExpiresAt() {
-        String json = "{\"id\": \"key-2\", \"expires_at\": null, \"created_at\": 1700000000}";
-        CreatedApiKey key = gson.fromJson(json, CreatedApiKey.class);
-        assertThat(key.getExpiresAt()).isNull();
-    }
-
-    @Test
-    void createdApiKeyToStringMasksPlainKey() {
-        String json = "{"
-                + "\"id\": \"key-1\","
-                + "\"name\": \"My Key\","
-                + "\"plain_key\": \"dos_live_secret_value\","
-                + "\"created_at\": 1700000000"
-                + "}";
-
-        CreatedApiKey key = gson.fromJson(json, CreatedApiKey.class);
-        String str = key.toString();
-        assertThat(str).contains("plainKey=***");
-        assertThat(str).doesNotContain("dos_live_secret_value");
-        assertThat(str).contains("key-1");
-        assertThat(str).contains("My Key");
-    }
-
     // ---- ListFilesResponse (unmodifiable lists) ----
 
     @Test
@@ -422,19 +376,6 @@ class ModelDeserializationTest {
         UserProfile profile = gson.fromJson(json, UserProfile.class);
         assertThat(profile.getId()).isEqualTo("user-1");
         assertThat(profile.getEmail()).isEqualTo("test@example.com");
-    }
-
-    @Test
-    void unknownFieldsAreIgnoredOnCreatedApiKey() {
-        String json = "{"
-                + "\"id\": \"key-1\","
-                + "\"name\": \"Test\","
-                + "\"created_at\": 1700000000,"
-                + "\"future_flag\": false"
-                + "}";
-
-        CreatedApiKey key = gson.fromJson(json, CreatedApiKey.class);
-        assertThat(key.getId()).isEqualTo("key-1");
     }
 
     // ---- Null fields deserialize correctly ----

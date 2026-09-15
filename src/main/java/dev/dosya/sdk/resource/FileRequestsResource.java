@@ -6,23 +6,28 @@ import dev.dosya.sdk.internal.DosyaHttpClient;
 import dev.dosya.sdk.internal.HttpRequest;
 import dev.dosya.sdk.model.CreateFileRequestParams;
 import dev.dosya.sdk.model.FileRequestCreateResponse;
-import dev.dosya.sdk.model.FileRequestDetail;
+import dev.dosya.sdk.model.FileRequestListItem;
+import dev.dosya.sdk.model.FileRequestRecipientsResponse;
+import dev.dosya.sdk.model.FileRequestWithActivity;
+import dev.dosya.sdk.model.UpdateFileRequestParams;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Type;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import static dev.dosya.sdk.internal.DosyaHttpClient.encode;
+import static dev.dosya.sdk.internal.PathSegments.seg;
 
 /**
- * Provides operations for managing file requests in Dosya workspaces.
+ * Upload requests: public pages where anyone with the link can upload into a workspace folder.
  *
- * <p>File requests allow users to collect file uploads from external recipients
- * via a shareable link. This resource handles creating, retrieving, updating,
- * deleting file requests, and managing their uploads and recipients.</p>
+ * <p>Key scope: GET needs {@code read} or {@code full}, the rest {@code full}; {@code upload}
+ * keys cannot call these. Workspace-pinned keys can only call {@link #list(String)} (for their
+ * own workspace); every other method is refused for them (403). dosya.dev recipient addresses
+ * are refused (400) unless the caller is a dosya.dev account.
  *
  * @since 0.1.0
  */
@@ -40,152 +45,123 @@ public final class FileRequestsResource {
     }
 
     /**
-     * Creates a new file request.
+     * Every request in a workspace (a confined member sees only their folder's).
      *
-     * @param params the creation parameters including workspace ID and optional settings
-     * @return the response containing the created file request summary
-     * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     * @since 0.3.0
+     */
+    public @NotNull List<FileRequestListItem> list(@NotNull String workspaceId) {
+        JsonObject resp = http.request(HttpRequest.get("/api/file-requests").query("workspace_id", workspaceId));
+        List<FileRequestListItem> requests = http.fromJson(resp.get("requests"),
+                new TypeToken<List<FileRequestListItem>>() {}.getType());
+        return requests != null ? Collections.unmodifiableList(requests) : Collections.emptyList();
+    }
+
+    /**
+     * Creates a request and emails it to the given addresses. 404 when the folder is missing
+     * or hidden, 403 {@code folder_locked} when it is fully locked.
      */
     public @NotNull FileRequestCreateResponse create(@NotNull CreateFileRequestParams params) {
-        Map<String, Object> body = new HashMap<String, Object>();
-        body.put("workspace_id", params.getWorkspaceId());
-        if (params.getFolderId() != null) body.put("folder_id", params.getFolderId());
-        if (params.getTitle() != null) body.put("title", params.getTitle());
-        if (params.getMessage() != null) body.put("message", params.getMessage());
-        if (params.getPassword() != null) body.put("password", params.getPassword());
-        if (params.getExpiresInDays() != null) body.put("expires_in_days", params.getExpiresInDays());
-        if (params.getAllowedExtensions() != null) body.put("allowed_extensions", params.getAllowedExtensions());
-        if (params.getMaxFileSizeMb() != null) body.put("max_file_size_mb", params.getMaxFileSizeMb());
-        if (params.getMaxFiles() != null) body.put("max_files", params.getMaxFiles());
-        if (params.getEmails() != null) body.put("emails", params.getEmails());
-        return http.requestAs(HttpRequest.post("/api/file-requests/create").body(body), FileRequestCreateResponse.class);
+        return http.requestAs(HttpRequest.post("/api/file-requests/create").body(params.toBody()),
+                FileRequestCreateResponse.class);
     }
 
     /**
-     * Retrieves detailed information about a file request.
+     * One request with its uploads and recipients. 404 when unknown.
      *
-     * @param requestId the unique identifier of the file request
-     * @return the file request detail
-     * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     * @since 0.3.0 (returned {@code FileRequestDetail} from a route that does not exist)
      */
-    public @NotNull FileRequestDetail get(@NotNull String requestId) {
-        JsonObject resp = http.request(HttpRequest.get("/api/file-requests/" + encode(requestId)));
-        return http.fromJson(resp.get("request"), FileRequestDetail.class);
+    public @NotNull FileRequestWithActivity get(@NotNull String requestId) {
+        return http.requestAs(HttpRequest.get("/api/file-requests/" + seg(requestId) + "/uploads"),
+                FileRequestWithActivity.class);
     }
 
     /**
-     * Updates a file request's title and/or message.
+     * Edits a request; only the fields set change. 400 "Nothing to update" for an empty
+     * patch, 403 {@code folder_locked} when moving into a locked folder.
      *
-     * @param requestId the unique identifier of the file request
-     * @param title     the new title, or {@code null} to leave unchanged
-     * @param message   the new message, or {@code null} to leave unchanged
-     * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     * @since 0.3.0
      */
+    public void update(@NotNull String requestId, @NotNull UpdateFileRequestParams params) {
+        http.request(HttpRequest.patch("/api/file-requests/" + seg(requestId)).body(params.toBody()));
+    }
+
+    /**
+     * Updates a request's title and/or message.
+     *
+     * @param title   the new title, or null to leave unchanged
+     * @param message the new message, or null to leave unchanged
+     * @deprecated use {@link #update(String, UpdateFileRequestParams)}, which can also clear fields
+     */
+    @Deprecated
     public void update(@NotNull String requestId, @Nullable String title, @Nullable String message) {
-        Map<String, Object> body = new HashMap<String, Object>();
-        if (title != null) body.put("title", title);
-        if (message != null) body.put("message", message);
-        http.request(HttpRequest.put("/api/file-requests/" + encode(requestId)).body(body));
+        if (title == null && message == null) return; // nothing to change; the API would answer 400
+        UpdateFileRequestParams params = new UpdateFileRequestParams();
+        if (title != null) params.title(title);
+        if (message != null) params.message(message);
+        update(requestId, params);
     }
 
     /**
-     * Deletes a file request.
-     *
-     * @param requestId the unique identifier of the file request to delete
-     * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     * Revokes a request (its page stops accepting uploads) and notifies recipients.
+     * Never retried: a repeated DELETE notifies every recipient again.
      */
     public void delete(@NotNull String requestId) {
-        http.request(HttpRequest.delete("/api/file-requests/" + encode(requestId)));
+        http.request(HttpRequest.delete("/api/file-requests/" + seg(requestId)).retry(HttpRequest.Retry.NEVER));
     }
 
     /**
-     * Lists all uploads received through a file request.
+     * Files uploaded through a request, with the request and its recipients. Same call as
+     * {@link #get(String)}.
      *
-     * @param requestId the unique identifier of the file request
-     * @return the list of uploads received
-     * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     * @since 0.3.0 (returned a list of uploads before)
      */
-    public @NotNull List<FileRequestUpload> listUploads(@NotNull String requestId) {
-        JsonObject resp = http.request(HttpRequest.get("/api/file-requests/" + encode(requestId) + "/uploads"));
-        Type listType = new TypeToken<List<FileRequestUpload>>() {}.getType();
-        return http.fromJson(resp.get("uploads"), listType);
+    public @NotNull FileRequestWithActivity listUploads(@NotNull String requestId) {
+        return get(requestId);
     }
 
     /**
-     * Lists all recipients of a file request.
+     * Invited addresses, oldest first, with their personal upload tokens.
      *
-     * @param requestId the unique identifier of the file request
-     * @return the list of recipients
-     * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     * @since 0.3.0 (returned a list of recipients before)
      */
-    public @NotNull List<FileRequestRecipient> listRecipients(@NotNull String requestId) {
-        JsonObject resp = http.request(HttpRequest.get("/api/file-requests/" + encode(requestId) + "/recipients"));
-        Type listType = new TypeToken<List<FileRequestRecipient>>() {}.getType();
-        return http.fromJson(resp.get("recipients"), listType);
+    public @NotNull FileRequestRecipientsResponse listRecipients(@NotNull String requestId) {
+        return http.requestAs(HttpRequest.get("/api/file-requests/" + seg(requestId) + "/recipients"),
+                FileRequestRecipientsResponse.class);
     }
 
     /**
-     * Resends the file request notification to specific recipients or all recipients.
+     * Invites one more address, emails it and returns the recipient id. 409 when already a
+     * recipient, 410 when the request is revoked.
      *
-     * @param requestId    the unique identifier of the file request
-     * @param recipientIds the list of recipient IDs to resend to, or {@code null} to resend to all
-     * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     * @since 0.3.0
      */
-    public void resend(@NotNull String requestId, @Nullable List<String> recipientIds) {
-        Map<String, Object> body = new HashMap<String, Object>();
-        if (recipientIds != null) body.put("recipient_ids", recipientIds);
-        http.request(HttpRequest.post("/api/file-requests/" + encode(requestId) + "/resend").body(body));
+    public @NotNull String addRecipient(@NotNull String requestId, @NotNull String email) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("email", Objects.requireNonNull(email, "email"));
+        JsonObject resp = http.request(HttpRequest.post("/api/file-requests/" + seg(requestId) + "/recipients").body(body));
+        return resp.get("id").getAsString();
     }
 
     /**
-     * Resends the file request notification to all recipients.
+     * Removes a recipient. Succeeds when already gone.
      *
-     * @param requestId the unique identifier of the file request
-     * @throws dev.dosya.sdk.exception.DosyaApiException if the API returns an error
+     * @since 0.3.0
      */
-    public void resend(@NotNull String requestId) {
-        resend(requestId, null);
+    public void removeRecipient(@NotNull String requestId, @NotNull String recipientId) {
+        seg(recipientId); // validates: an empty id would otherwise be dropped from the query
+        http.request(HttpRequest.delete("/api/file-requests/" + seg(requestId) + "/recipients")
+                .query("recipient_id", recipientId));
     }
 
     /**
-     * Represents a file that was uploaded in response to a file request.
+     * Emails the request to one recipient again. 404 when the request is revoked or the
+     * recipient unknown; 500 when the email could not be sent.
      *
-     * @since 0.1.0
+     * @since 0.3.0 (replaces {@code resend(requestId)} and {@code resend(requestId, List)}, which the API refuses)
      */
-    public static final class FileRequestUpload {
-        private String id;
-        private String fileName;
-        private long sizeBytes;
-        private String mimeType;
-        private long uploadedAt;
-        private String uploaderEmail;
-
-        private FileRequestUpload() {}
-
-        public String getId() { return id; }
-        public String getFileName() { return fileName; }
-        public long getSizeBytes() { return sizeBytes; }
-        public String getMimeType() { return mimeType; }
-        public long getUploadedAt() { return uploadedAt; }
-        public String getUploaderEmail() { return uploaderEmail; }
-    }
-
-    /**
-     * Represents a recipient of a file request invitation.
-     *
-     * @since 0.1.0
-     */
-    public static final class FileRequestRecipient {
-        private String id;
-        private String email;
-        private String status;
-        private long sentAt;
-
-        private FileRequestRecipient() {}
-
-        public String getId() { return id; }
-        public String getEmail() { return email; }
-        public String getStatus() { return status; }
-        public long getSentAt() { return sentAt; }
+    public void resend(@NotNull String requestId, @NotNull String recipientId) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("recipient_id", Objects.requireNonNull(recipientId, "recipientId"));
+        http.request(HttpRequest.post("/api/file-requests/" + seg(requestId) + "/resend").body(body));
     }
 }

@@ -1,9 +1,10 @@
 package dev.dosya.sdk.model;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents a single version of a file.
+ * One version of a file.
  *
  * @since 0.1.0
  */
@@ -20,12 +21,18 @@ public final class FileVersion {
 
     private FileVersion() {}
 
+    /**
+     * The version id. A never-edited file reports its current version as
+     * {@code fver_implicit_<fileId>}, which is not a real version row.
+     */
     public @NotNull String getId() { return id; }
     public int getVersionNumber() { return versionNumber; }
     public long getSizeBytes() { return sizeBytes; }
     public @NotNull String getMimeType() { return mimeType; }
-    public @NotNull String getExtension() { return extension; }
+    public @Nullable String getExtension() { return extension; }
     public @NotNull String getUploadedBy() { return uploadedBy; }
-    public @NotNull String getUploaderName() { return uploaderName; }
+    /** Null when the uploader's account is gone. */
+    public @Nullable String getUploaderName() { return uploaderName; }
+    /** Unix seconds. */
     public long getCreatedAt() { return createdAt; }
 }

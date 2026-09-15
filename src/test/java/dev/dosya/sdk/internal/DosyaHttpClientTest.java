@@ -488,24 +488,24 @@ class DosyaHttpClientTest {
 
         client.request(HttpRequest.get("/api/v1/files"));
 
-        assertThat(debugMessages).anyMatch(msg -> msg.contains("Server error 500"));
+        assertThat(debugMessages).anyMatch(msg -> msg.contains("HTTP 500"));
     }
 
-    // ---- doFetch directly ----
+    // ---- requestRaw ----
 
     @Test
-    void doFetchReturnsHttpResult() {
+    void requestRawReturnsTheResponse() throws Exception {
         server.enqueue(new MockResponse()
                 .setResponseCode(200)
                 .setHeader("X-Request-Id", "req-fetch")
-                .setBody("{\"ok\":true,\"result\":\"direct\"}"));
+                .setBody("direct"));
 
         DosyaHttpClient client = new DosyaHttpClient(defaultTestOptions());
-        DosyaHttpClient.HttpResult result = client.doFetch(HttpRequest.get("/api/v1/test"));
+        java.net.http.HttpResponse<java.io.InputStream> result = client.requestRaw(HttpRequest.get("/api/v1/test"));
 
-        assertThat(result.statusCode).isEqualTo(200);
-        assertThat(result.body).contains("direct");
-        assertThat(result.requestId).isEqualTo("req-fetch");
+        assertThat(result.statusCode()).isEqualTo(200);
+        assertThat(new String(result.body().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8)).isEqualTo("direct");
+        assertThat(result.headers().firstValue("X-Request-Id")).contains("req-fetch");
     }
 
     // ---- POST with JSON body ----

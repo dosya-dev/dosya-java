@@ -25,11 +25,15 @@ public final class UploadStatusResponse {
     private UploadStatusResponse() {}
 
     public @NotNull String getSessionId() { return sessionId; }
+    /** One of {@code pending}, {@code uploading}, {@code failed}, {@code complete}. */
     public @NotNull String getStatus() { return status; }
+    /** Declared size; corrected to the counted bytes after completion. */
     public long getSizeBytes() { return sizeBytes; }
+    /** Part size of a multipart session, or null for a single-request session. */
     public @Nullable Integer getPartSize() { return partSize; }
     public @Nullable Integer getTotalParts() { return totalParts; }
     public long getBytesUploaded() { return bytesUploaded; }
     public @NotNull List<Integer> getUploadedParts() { return uploadedParts != null ? Collections.unmodifiableList(uploadedParts) : Collections.<Integer>emptyList(); }
+    /** True once at least one part has landed - not "this is a multipart session". */
     public boolean hasMultipart() { return hasMultipart; }
 }

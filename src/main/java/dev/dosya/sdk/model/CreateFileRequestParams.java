@@ -4,7 +4,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Parameters for creating a new file request.
@@ -34,17 +37,22 @@ public final class CreateFileRequestParams {
     private List<String> emails;
 
     public CreateFileRequestParams(@NotNull String workspaceId) {
-        this.workspaceId = workspaceId;
+        this.workspaceId = Objects.requireNonNull(workspaceId, "workspaceId");
     }
 
+    /** Destination folder; the workspace root when omitted (a confined member's own folder). */
     public CreateFileRequestParams folderId(String folderId) { this.folderId = folderId; return this; }
     public CreateFileRequestParams title(String title) { this.title = title; return this; }
     public CreateFileRequestParams message(String message) { this.message = message; return this; }
+    /** At least 8 characters. */
     public CreateFileRequestParams password(String password) { this.password = password; return this; }
+    /** Omit for no expiry. */
     public CreateFileRequestParams expiresInDays(int expiresInDays) { this.expiresInDays = expiresInDays; return this; }
+    /** Comma-separated, e.g. {@code ".pdf,.docx"}. */
     public CreateFileRequestParams allowedExtensions(String allowedExtensions) { this.allowedExtensions = allowedExtensions; return this; }
     public CreateFileRequestParams maxFileSizeMb(int maxFileSizeMb) { this.maxFileSizeMb = maxFileSizeMb; return this; }
     public CreateFileRequestParams maxFiles(int maxFiles) { this.maxFiles = maxFiles; return this; }
+    /** Addresses to email the request to. Invalid ones are dropped; at most 100. */
     public CreateFileRequestParams emails(List<String> emails) { this.emails = emails != null ? new ArrayList<String>(emails) : null; return this; }
 
     public @NotNull String getWorkspaceId() { return workspaceId; }
@@ -57,4 +65,20 @@ public final class CreateFileRequestParams {
     public @Nullable Integer getMaxFileSizeMb() { return maxFileSizeMb; }
     public @Nullable Integer getMaxFiles() { return maxFiles; }
     public @Nullable List<String> getEmails() { return emails; }
+
+    /** The request body, with only the fields that were set. @since 0.3.0 */
+    public @NotNull Map<String, Object> toBody() {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("workspace_id", workspaceId);
+        if (folderId != null) body.put("folder_id", folderId);
+        if (title != null) body.put("title", title);
+        if (message != null) body.put("message", message);
+        if (password != null) body.put("password", password);
+        if (expiresInDays != null) body.put("expires_in_days", expiresInDays);
+        if (allowedExtensions != null) body.put("allowed_extensions", allowedExtensions);
+        if (maxFileSizeMb != null) body.put("max_file_size_mb", maxFileSizeMb);
+        if (maxFiles != null) body.put("max_files", maxFiles);
+        if (emails != null) body.put("emails", new ArrayList<>(emails));
+        return body;
+    }
 }

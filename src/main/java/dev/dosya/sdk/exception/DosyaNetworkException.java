@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @since 0.1.0
  */
-public final class DosyaNetworkException extends DosyaException {
+public class DosyaNetworkException extends DosyaException {
 
     /**
      * Creates a new network exception with the given message.

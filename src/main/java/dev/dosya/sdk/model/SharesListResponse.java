@@ -7,20 +7,26 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Response returned when listing share links for a workspace.
- *
- * <p>Contains the list of share links and summary statistics.</p>
+ * Response of {@code shares().list()}: the links in a workspace and summary statistics.
  *
  * @since 0.1.0
  */
 public final class SharesListResponse {
 
-    private List<ShareLinkDetail> links;
+    private List<WorkspaceShareLink> links;
     private Stats stats;
 
     private SharesListResponse() {}
 
-    public @NotNull List<ShareLinkDetail> getLinks() { return links != null ? Collections.unmodifiableList(links) : Collections.<ShareLinkDetail>emptyList(); }
+    /**
+     * At most 100, newest first, revoked and expired included. Links to items hidden from
+     * the caller are left out.
+     *
+     * @since 0.3.0 (returned {@code List<ShareLinkDetail>} before)
+     */
+    public @NotNull List<WorkspaceShareLink> getLinks() {
+        return links != null ? Collections.unmodifiableList(links) : Collections.emptyList();
+    }
     public @Nullable Stats getStats() { return stats; }
 
     /**
@@ -32,13 +38,13 @@ public final class SharesListResponse {
         private int total;
         private int active;
         private int expiring;
-        private int totalViews;
+        private long totalViews;
 
         private Stats() {}
 
         public int getTotal() { return total; }
         public int getActive() { return active; }
         public int getExpiring() { return expiring; }
-        public int getTotalViews() { return totalViews; }
+        public long getTotalViews() { return totalViews; }
     }
 }
